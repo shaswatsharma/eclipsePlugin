@@ -20,7 +20,6 @@ import javax.swing.event.DocumentListener;
 
 public class MethodAdderJFrame extends JFrame {
 
-	
 	private JPanel contentPane;
 	private JTextField filePathText;
 	private JTextField methodNameText;
