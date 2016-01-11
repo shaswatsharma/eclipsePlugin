@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.plugin.log.Log;
 import com.plugin.utils.FileInfo;
 import com.plugin.utils.Filereader;
 
@@ -12,6 +13,7 @@ import com.plugin.utils.Filereader;
  * This class validates the different parameters of a class entered by the user
  */
 public class Validate {
+	private String error = "";
 	/*
 	 * This method validates the name of the method
 	 */
@@ -21,9 +23,11 @@ public class Validate {
 		String str = fileReader.readContents();
 
 		// This condition returns false if method name starts from the digit
-		if (name.charAt(0) > 47 && name.charAt(0) < 57)
+		if (name.charAt(0) > 47 && name.charAt(0) < 57) {
+			error = error + "\nMethod name starts with a digit\n";
 			return false;
-
+		}
+		
 		// This condition returns false if method is already present 
 		String val = null;
         String parName = null;
@@ -51,14 +55,19 @@ public class Validate {
 
               }
         }
-        if (str.toLowerCase().contains(" " + name.toLowerCase() + "(" + resultMethod))
-              return false;
-
+        if (str.toLowerCase().contains(" " + name.toLowerCase() + "(" + resultMethod)) {
+            error = error + "\nMethod already exists\n";  
+        	return false;
+        }
+        
 		// Here we are checking either method name is violated or not using
 		// regular expression
 		Pattern p = Pattern.compile("^[a-z0-9$_]++$", Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(name);
 		boolean b = m.find();
+		if(b==false) {
+			error = error + "\nSpecial characters not allowed\n";
+		}
 		return b;
 
 	}
@@ -75,17 +84,21 @@ public class Validate {
 
 				// This condition returns false if parameter name starts with
 				// digit
-				if (name.charAt(0) > 47 && name.charAt(0) < 57)
+				if (name.charAt(0) > 47 && name.charAt(0) < 57) {
+					error = error + "\nParameter name starts with digit\n";
 					return false;
-
+				}
+				
 				// Here we are checking either method name is violated or not
 				// using
 				// regular expression
 				Pattern p = Pattern.compile("^[a-z0-9$_]++$", Pattern.CASE_INSENSITIVE);
 				Matcher m = p.matcher(name);
 				boolean b = m.find();
-				if (b == false)
+				if (b == false) {
+					error = error + "\nSpecial characters not allowed\n";
 					return b;
+				}
 			}
 		}
 		return true;
@@ -104,17 +117,23 @@ public class Validate {
 	 * Check whether comments are available or not
 	 */
 	private boolean isCommentAvailable(FileInfo fileInfo) {
-		if (fileInfo.getComments() == null)
+		if (fileInfo.getComments() == null) {
+			error = error + "\nComment not available\n";
 			return false;
+		}
 		return true;
 	}
 
 	/*
 	 * It validates all the method and returns a final boolean value
 	 */
-	public boolean validateAll(FileInfo fileInfo) {
-		return isValidMethodName(fileInfo) && isValidParameterName(fileInfo) && isCommentAvailable(fileInfo)
+	public Log validateAll(FileInfo fileInfo) {
+		Log log = new Log();
+		boolean result = isValidMethodName(fileInfo) && isValidParameterName(fileInfo) && isCommentAvailable(fileInfo)
 				&& isValidNumberOfArguments(fileInfo);
+		log.setResult(result);
+		log.setError(error);
+		return log;
 	}
 
 }
