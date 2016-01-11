@@ -7,7 +7,7 @@ import java.util.Set;
 
 public class FileInfo {
 
-	private String name, accessSpecifier, accessmodifier, returntytpe, resultMethod;
+	private String name, accessSpecifier, accessmodifier, returntytpe, resultMethod, comments;
 	private ArrayList<HashMap<String, String>> list;
 	private final String KEY_NAME = "name";
 	private final String KEY_TYPE = "type";
@@ -55,8 +55,16 @@ public class FileInfo {
 	public void setList(ArrayList<HashMap<String, String>> list) {
 		this.list = list;
 	}
+	
+	public void setComments(String comments) {
+		this.comments = comments;
+	}
+	
+	public String getComments() {
+		return comments;
+	}
 
-	public void createMethod() {// to create the result method whicjh has to be
+	public void createMethod() {// to create the result method which has to be
 								// appended //public final int count() {
 		resultMethod = accessSpecifier + " " + accessmodifier + " " + returntytpe + " " + name + "(";
 		String val = null;

@@ -4,22 +4,22 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class Filereader {
 
-	 static String result;
+	    static String result;
 		private File file;		
 		private StringBuilder filecontents;
 		private String currline;
+		private static Filereader fileobj=null;
+		private String filepath;
 		BufferedReader br=null;
 		
 		public Filereader(String path){//Constructor which takes File Path and calls "ReadContents" to read its contents				
-			 result=readContents(path);
-			System.out.println(result);
+			 this.filepath = path;
 		}
 	    
-		private String readContents(String filepath){//read the contents of the file in a StringBuilder  and Return the contents in the form of string	 
+		public String readContents(){//read the contents of the file in a StringBuilder  and Return the contents in the form of string	 
 			file=new File(filepath);
 		    filecontents=new StringBuilder((int)file.length());
 			
@@ -43,10 +43,8 @@ public class Filereader {
 		 return filecontents.toString();
 		}
 		
-		public static void main(String args[]){
-			@SuppressWarnings("unused")
-			Filereader file=new Filereader("C:\\Users\\I320234\\Desktop\\mainactivity.txt");
-	    	//System.out.println(result);
+		public static void main(String args[]){			
+			fileobj=new Filereader("C:\\Users\\I320234\\Desktop\\mainactivity.txt");
 		}
 	
 }
