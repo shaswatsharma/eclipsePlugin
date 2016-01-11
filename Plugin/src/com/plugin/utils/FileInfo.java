@@ -1,14 +1,35 @@
 package com.plugin.utils;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class FileInfo {
 
-	private String name, accessSpecifier, accessModifier, returnType, resultMethod, comments, filePath, addComment;
+	private String destination = "C:\\Users\\I323334\\Desktop\\Custom Method.txt";
+	private String name, accessSpecifier, accessModifier, returnType, resultMethod, comments, filePath, addComment,
+			annotation;
 	private ArrayList<HashMap<String, String>> list;
 	private final String KEY_NAME = "name";
 	private final String KEY_TYPE = "type";
+	private boolean isReturnTypeCustom = false;
+
+	public boolean isReturnTypeCustom() {
+		return isReturnTypeCustom;
+	}
+
+	public void setReturnTypeCustom(boolean isReturnTypeCustom) {
+		this.isReturnTypeCustom = isReturnTypeCustom;
+	}
+
+	public String getAnnotation() {
+		return annotation;
+	}
+
+	public void setAnnotation(String annotation) {
+		this.annotation = annotation;
+	}
 
 	public String getFilePath() {
 		return filePath;
@@ -71,15 +92,20 @@ public class FileInfo {
 	}
 
 	public String createMethod() {// to create the result method which has to be
-								// appended //public final int count() {
-		
-		addComment = "/*\n" + " *" + comments + "\n */\n"; 
-		
-		resultMethod = addComment+ accessSpecifier + " " + accessModifier + " " + returnType + " " + name + "(";
+									// appended //public final int count() {
+
+		addComment = "/*\n" + " *" + comments + "\n */\n";
+		annotation = (annotation == "none") ? "" : "@" + annotation + "\n";
+		accessSpecifier = (accessSpecifier == "default") ? "" : accessSpecifier + " ";
+		accessModifier = (accessModifier == "default") ? "" : accessModifier + " ";
+		resultMethod = addComment + annotation + accessSpecifier + accessModifier + returnType + " " + name + "(";
+
+		saveCustomReturnType();
+
 		String val = null;
 		String parName = null;
 		String parType = null;
-		if (list!=null && list.size() != 0) {
+		if (list != null && list.size() != 0) {
 			HashMap<String, String> map = (HashMap<String, String>) list.get(0);
 			parName = map.get(KEY_NAME);
 			parType = map.get(KEY_TYPE);
@@ -93,47 +119,64 @@ public class FileInfo {
 			parName = (String) map.get(KEY_NAME);
 			parType = (String) map.get(KEY_TYPE);
 			if (parName != null && parType != null) {
-				val = "," + parType + " " + parName;
+				val = ", " + parType + " " + parName;
 				resultMethod = resultMethod + val;
 			}
 
 		}
-		resultMethod = resultMethod + "){}";
+		resultMethod = resultMethod + ") {";
+		if (returnType != "void") {
+			resultMethod += "\n return null;\n}";
+		} else
+			resultMethod += "\n}";
 		return resultMethod;
 	}
 
-/*	public static void main(String args[]) {
-
-		HashMap<String, String> map1 = new HashMap<String, String>();
-		map1.put("name", "par1");
-		map1.put("type", "int");
-
-		HashMap<String, String> map2 = new HashMap<String, String>();
-		map2.put("name", "par2");
-		map2.put("type", "float");
-
-		HashMap<String, String> map3 = new HashMap<String, String>();
-		map3.put("name", "par3");
-		map3.put("type", "Long");
-
-		HashMap<String, String> map4 = new HashMap<String, String>();
-		map4.put("name", "par4");
-		map4.put("type", "String");
-
-		ArrayList<HashMap<String, String>> testlist = new ArrayList<HashMap<String, String>>();
-		testlist.add(map1);
-		testlist.add(map2);
-		testlist.add(map3);
-		testlist.add(map4);
-
-		FileInfo info = new FileInfo();
-		info.setAccessModifier("final");
-		info.setAccessSpecifier("public");
-		info.setName("testmethod");
-		info.setReturnType("void");
-		info.setList(testlist);
-
-		info.createMethod();
+	/*
+	 * Method to save custom returnTypes
+	 */
+	private void saveCustomReturnType() {
+		try {
+			String customReturnType = null;
+			if (isReturnTypeCustom == true)
+				customReturnType = getReturnType();
+			BufferedWriter out = new BufferedWriter(new FileWriter(destination, true));
+			out.write(customReturnType);
+			out.newLine();
+			out.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
-*/
+	
+	public String getCustomReturnType() {
+		Filereader fileReader = new Filereader("C:\\Users\\I323334\\Desktop\\Test.java");
+		return fileReader.readContents();
+	}
+
+	/*
+	 * public static void main(String args[]) {
+	 * 
+	 * HashMap<String, String> map1 = new HashMap<String, String>();
+	 * map1.put("name", "par1"); map1.put("type", "int");
+	 * 
+	 * HashMap<String, String> map2 = new HashMap<String, String>();
+	 * map2.put("name", "par2"); map2.put("type", "float");
+	 * 
+	 * HashMap<String, String> map3 = new HashMap<String, String>();
+	 * map3.put("name", "par3"); map3.put("type", "Long");
+	 * 
+	 * HashMap<String, String> map4 = new HashMap<String, String>();
+	 * map4.put("name", "par4"); map4.put("type", "String");
+	 * 
+	 * ArrayList<HashMap<String, String>> testlist = new
+	 * ArrayList<HashMap<String, String>>(); testlist.add(map1);
+	 * testlist.add(map2); testlist.add(map3); testlist.add(map4);
+	 * 
+	 * FileInfo info = new FileInfo(); info.setAccessModifier("final");
+	 * info.setAccessSpecifier("public"); info.setName("testmethod");
+	 * info.setReturnType("void"); info.setList(testlist);
+	 * 
+	 * info.createMethod(); }
+	 */
 }
