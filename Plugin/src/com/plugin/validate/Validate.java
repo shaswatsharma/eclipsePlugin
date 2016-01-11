@@ -12,14 +12,12 @@ import com.plugin.utils.Filereader;
  * This class validates the different parameters of a class entered by the user
  */
 public class Validate {
-	FileInfo fileInfo = new FileInfo();
-	Filereader fileReader = new Filereader("C:\\Users\\I320234\\Desktop\\mainactivity.txt");
-
 	/*
 	 * This method validates the name of the method
 	 */
-	private boolean isValidMethodName() {
+	private boolean isValidMethodName(FileInfo fileInfo) {
 		String abc = fileInfo.getName();
+		Filereader fileReader = new Filereader(fileInfo.getFilePath());
 		String str = fileReader.readContents();
 
 		// This condition returns false if method name starts from the digit
@@ -43,7 +41,7 @@ public class Validate {
 	/*
 	 * This method validates the name of the arguments of a method
 	 */
-	private boolean isValidParameterName() {
+	private boolean isValidParameterName(FileInfo fileInfo) {
 		List<HashMap<String, String>> list = fileInfo.getList();
 		for (int i = 0; i < list.size(); i++) {
 			HashMap<String, String> map = (HashMap<String, String>) list.get(i);
@@ -67,7 +65,7 @@ public class Validate {
 	/*
 	 * Checks whether the no of arguments doesn't exceed the limit
 	 */
-	private boolean isValidNumberOfArguments() {
+	private boolean isValidNumberOfArguments(FileInfo fileInfo) {
 		if (fileInfo.getList().size() > 4)
 			return false;
 		return true;
@@ -76,7 +74,7 @@ public class Validate {
 	/*
 	 * Check whether comments are available or not
 	 */
-	private boolean isCommentAvailable() {
+	private boolean isCommentAvailable(FileInfo fileInfo) {
 		if (fileInfo.getComments() == null)
 			return false;
 		return true;
@@ -85,8 +83,8 @@ public class Validate {
 	/*
 	 * It validates all the method and returns a final boolean value
 	 */
-	public boolean validateAll() {
-		return isValidMethodName() && isValidParameterName() && isCommentAvailable() && isValidNumberOfArguments();
+	public boolean validateAll(FileInfo fileInfo) {
+		return isValidMethodName(fileInfo) && isValidParameterName(fileInfo) && isCommentAvailable(fileInfo) && isValidNumberOfArguments(fileInfo);
 	}
 
 }
