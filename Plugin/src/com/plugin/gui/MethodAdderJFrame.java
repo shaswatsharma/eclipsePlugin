@@ -20,6 +20,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.plugin.log.Log;
 import com.plugin.utils.FileAppend;
 import com.plugin.utils.FileInfo;
 import com.plugin.validate.Validate;
@@ -40,6 +41,7 @@ public class MethodAdderJFrame extends JFrame {
 	private String[] accessSpecifiers = { "default", "static", "final" };
 	private final String KEY_NAME = "name";
 	private final String KEY_TYPE = "type";
+	private FileInfo fileInfo;
 
 	/**
 	 * Launch the application.
@@ -284,6 +286,16 @@ public class MethodAdderJFrame extends JFrame {
 
 		JLabel lblMethodDescription = new JLabel("Method Description");
 
+		btnAdd.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FileAppend fileAppend = new FileAppend(fileInfo.createMethod(), fileInfo.getFilePath());
+				JOptionPane.showMessageDialog(frame, "Method addedd successfully");
+				btnAdd.setEnabled(false);
+			}
+		});
+
 		JButton btnValidate = new JButton("Validate");
 		btnValidate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -341,7 +353,7 @@ public class MethodAdderJFrame extends JFrame {
 				if (isError) {
 					JOptionPane.showMessageDialog(frame, errorLog);
 				} else {
-					FileInfo fileInfo = new FileInfo();
+					fileInfo = new FileInfo();
 					fileInfo.setFilePath(filePath.replace("\\", "\\\\"));
 					fileInfo.setAccessModifier(accessModifier);
 					fileInfo.setAccessSpecifier(accessSpecifier);
@@ -353,11 +365,13 @@ public class MethodAdderJFrame extends JFrame {
 
 					ArrayList<HashMap<String, String>> argumentList = new ArrayList<HashMap<String, String>>();
 					if (param1.equals("") || param1.isEmpty()) {
-						if (validate.validateAll(fileInfo)) {
-							FileAppend fileAppend = new FileAppend(fileInfo.createMethod(), fileInfo.getFilePath());
-							JOptionPane.showMessageDialog(frame, "Method addedd successfully");
+						Log log = validate.validateAll(fileInfo);
+						if (log.getResult()) {
+							JOptionPane.showMessageDialog(frame,
+									"Your Input is Validated. Please Click Add to add your inputs.");
+							btnAdd.setEnabled(true);
 						} else {
-							JOptionPane.showMessageDialog(frame, "Please Check the data.");
+							JOptionPane.showMessageDialog(frame, "Invalid Input!\n"+log.getError());
 						}
 
 					} else {
@@ -396,11 +410,13 @@ public class MethodAdderJFrame extends JFrame {
 							}
 						}
 						fileInfo.setList(argumentList);
-						if (validate.validateAll(fileInfo)) {
-							FileAppend fileAppend = new FileAppend(fileInfo.createMethod(), fileInfo.getFilePath());
-							JOptionPane.showMessageDialog(frame, "Method addedd successfully");
+						Log log = validate.validateAll(fileInfo);
+						if (log.getResult()) {
+							JOptionPane.showMessageDialog(frame,
+									"Your Input is Validated. Please Click Add to add your inputs.");
+							btnAdd.setEnabled(true);
 						} else {
-							JOptionPane.showMessageDialog(frame, "Please Check the data.");
+							JOptionPane.showMessageDialog(frame, "Invalid Input!\n"+log.getError());
 						}
 					}
 				}
