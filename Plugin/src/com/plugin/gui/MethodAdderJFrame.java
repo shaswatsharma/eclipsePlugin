@@ -2,6 +2,9 @@ package com.plugin.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -9,6 +12,7 @@ import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -30,13 +34,16 @@ public class MethodAdderJFrame extends JFrame {
 	private JPanel contentPane;
 	private JTextField filePathText;
 	private JTextField methodNameText;
-	private JTextField param1Text, param2Text, param3Text, param4Text, param5Text;
+	private JTextField param1Text, param2Text, param3Text, param4Text, param5Text, customReturnText;
 	private JTextArea methodDescriptionText;
-	private JComboBox param1ComboBox, param2ComboBox, param3ComboBox, param4ComboBox, param5ComboBox;
+	private JComboBox param1ComboBox, param2ComboBox, param3ComboBox, param4ComboBox, param5ComboBox,
+			annotationComboBox;
 	private static MethodAdderJFrame frame;
 	private JButton btnAdd;
 
-	private String[] type = { "void", "int", "boolean", "long", "String" };
+	private String[] annotation = { "none", "Deprecated", "Override", "SupperssWarnings", "Entity" };
+	private String[] returnType = { "int", "boolean", "long", "String" };
+	private String[] type = { "void", "int", "boolean", "long", "String", "Custom" };
 	private String[] accessModifiers = { "default", "private", "public", "protected" };
 	private String[] accessSpecifiers = { "default", "static", "final" };
 	private final String KEY_NAME = "name";
@@ -55,8 +62,10 @@ public class MethodAdderJFrame extends JFrame {
 	 * Create the frame.
 	 */
 	public MethodAdderJFrame() {
+		fileInfo = new FileInfo();
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 480, 622);
+		setBounds(100, 100, 820, 772);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -64,10 +73,16 @@ public class MethodAdderJFrame extends JFrame {
 		btnAdd = new JButton("Add Method");
 		btnAdd.setEnabled(false);
 
+		JFileChooser fc = new JFileChooser();
+
 		JLabel lblFilePath = new JLabel("File Path");
 
 		filePathText = new JTextField();
 		filePathText.setColumns(10);
+
+		customReturnText = new JTextField();
+		customReturnText.setColumns(10);
+		customReturnText.setEnabled(false);
 
 		JLabel lblAddMethodDetails = new JLabel("Add Method Details");
 
@@ -82,6 +97,23 @@ public class MethodAdderJFrame extends JFrame {
 
 		JComboBox returnTypeComboBox = new JComboBox(type);
 
+		returnTypeComboBox.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					String selectedValue = (String)returnTypeComboBox.getSelectedItem();
+					if (selectedValue.equals("Custom")) {
+						customReturnText.setEnabled(true);
+						fileInfo.setReturnTypeCustom(true);
+					} else{
+						customReturnText.setEnabled(false);
+						fileInfo.setReturnTypeCustom(false);
+					}
+				}
+			}
+		});
+
 		JLabel lblAccessModifier = new JLabel("Access Modifier");
 
 		JComboBox accessModifierComboBox = new JComboBox(accessModifiers);
@@ -94,16 +126,18 @@ public class MethodAdderJFrame extends JFrame {
 
 		JLabel lblParameterType = new JLabel("Parameter Type");
 
-		param1ComboBox = new JComboBox(type);
+		param1ComboBox = new JComboBox(returnType);
 		param1ComboBox.setEnabled(false);
-		param2ComboBox = new JComboBox(type);
+		param2ComboBox = new JComboBox(returnType);
 		param2ComboBox.setEnabled(false);
-		param3ComboBox = new JComboBox(type);
+		param3ComboBox = new JComboBox(returnType);
 		param3ComboBox.setEnabled(false);
-		param4ComboBox = new JComboBox(type);
+		param4ComboBox = new JComboBox(returnType);
 		param4ComboBox.setEnabled(false);
-		param5ComboBox = new JComboBox(type);
+		param5ComboBox = new JComboBox(returnType);
 		param5ComboBox.setEnabled(false);
+
+		annotationComboBox = new JComboBox(annotation);
 
 		param1Text = new JTextField();
 		param1Text.setColumns(10);
@@ -353,13 +387,18 @@ public class MethodAdderJFrame extends JFrame {
 				if (isError) {
 					JOptionPane.showMessageDialog(frame, errorLog);
 				} else {
-					fileInfo = new FileInfo();
 					fileInfo.setFilePath(filePath.replace("\\", "\\\\"));
 					fileInfo.setAccessModifier(accessModifier);
 					fileInfo.setAccessSpecifier(accessSpecifier);
 					fileInfo.setComments(methodDescription);
 					fileInfo.setName(methodName);
-					fileInfo.setReturnType(returnType);
+					fileInfo.setAnnotation((String) annotationComboBox.getSelectedItem());
+					
+					if(!fileInfo.isReturnTypeCustom()){
+						fileInfo.setReturnType(returnType);
+					}else{
+						fileInfo.setReturnType(customReturnText.getText().trim());
+					}
 
 					Validate validate = new Validate();
 
@@ -371,7 +410,7 @@ public class MethodAdderJFrame extends JFrame {
 									"Your Input is Validated. Please Click Add to add your inputs.");
 							btnAdd.setEnabled(true);
 						} else {
-							JOptionPane.showMessageDialog(frame, "Invalid Input!\n"+log.getError());
+							JOptionPane.showMessageDialog(frame, "Invalid Input!\n" + log.getError());
 						}
 
 					} else {
@@ -416,7 +455,7 @@ public class MethodAdderJFrame extends JFrame {
 									"Your Input is Validated. Please Click Add to add your inputs.");
 							btnAdd.setEnabled(true);
 						} else {
-							JOptionPane.showMessageDialog(frame, "Invalid Input!\n"+log.getError());
+							JOptionPane.showMessageDialog(frame, "Invalid Input!\n" + log.getError());
 						}
 					}
 				}
@@ -424,135 +463,182 @@ public class MethodAdderJFrame extends JFrame {
 			}
 		});
 
+		JButton btnBrowse = new JButton("Browse");
+		btnBrowse.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int returnVal = fc.showOpenDialog(MethodAdderJFrame.this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File file = fc.getSelectedFile();
+					filePathText.setText(file.getAbsolutePath());
+				}
+			}
+		});
+
+		JLabel lblAnnotation = new JLabel("Annotation");
+
+		JLabel lblCustomReturnType = new JLabel("Custom Return Type");
+
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
-		gl_contentPane.setHorizontalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+		gl_contentPane.setHorizontalGroup(gl_contentPane
+				.createParallelGroup(
+						Alignment.LEADING)
 				.addGroup(gl_contentPane.createSequentialGroup()
-						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-								.addComponent(lblFilePath, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblFilePath, GroupLayout.PREFERRED_SIZE, 57, GroupLayout.PREFERRED_SIZE)
+						.addGap(18)
+						.addComponent(filePathText, GroupLayout.PREFERRED_SIZE, 556, GroupLayout.PREFERRED_SIZE)
+						.addGap(29).addComponent(btnBrowse).addContainerGap(67, Short.MAX_VALUE))
+				.addGroup(gl_contentPane.createSequentialGroup().addContainerGap()
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 								.addGroup(gl_contentPane.createSequentialGroup()
 										.addComponent(lblName, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)
-										.addGap(151).addComponent(methodNameText, GroupLayout.PREFERRED_SIZE, 151,
-												GroupLayout.PREFERRED_SIZE))
+										.addPreferredGap(ComponentPlacement.RELATED).addComponent(methodNameText,
+												GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE))
 						.addGroup(gl_contentPane.createSequentialGroup()
-								.addComponent(lblReturnType, GroupLayout.PREFERRED_SIZE, 151,
-										GroupLayout.PREFERRED_SIZE)
-								.addGap(151).addComponent(returnTypeComboBox, GroupLayout.PREFERRED_SIZE, 151,
-										GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_contentPane.createSequentialGroup()
-								.addComponent(lblAccessModifier, GroupLayout.PREFERRED_SIZE, 151,
-										GroupLayout.PREFERRED_SIZE)
-								.addGap(151).addComponent(accessModifierComboBox, GroupLayout.PREFERRED_SIZE, 151,
-										GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_contentPane.createSequentialGroup()
-								.addComponent(lblAccessSpecifier, GroupLayout.PREFERRED_SIZE, 151,
-										GroupLayout.PREFERRED_SIZE)
-								.addGap(151).addComponent(accessSpecifierComboBox, GroupLayout.PREFERRED_SIZE, 151,
-										GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_contentPane.createSequentialGroup()
-								.addComponent(lblParameterName, GroupLayout.PREFERRED_SIZE, 151,
-										GroupLayout.PREFERRED_SIZE)
-								.addGap(151).addComponent(lblParameterType, GroupLayout.PREFERRED_SIZE, 151,
-										GroupLayout.PREFERRED_SIZE))
-						.addGroup(
-								gl_contentPane.createSequentialGroup()
-										.addComponent(param1Text, GroupLayout.PREFERRED_SIZE, 151,
+								.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addComponent(lblAccessModifier, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)
-										.addGap(151).addComponent(param1ComboBox, GroupLayout.PREFERRED_SIZE, 151,
-												GroupLayout.PREFERRED_SIZE))
-						.addGroup(
-								gl_contentPane.createSequentialGroup()
-										.addComponent(param2Text, GroupLayout.PREFERRED_SIZE, 151,
+										.addComponent(lblAnnotation))
+								.addPreferredGap(ComponentPlacement.RELATED)
+								.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
+										.addComponent(accessModifierComboBox, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)
-										.addGap(151).addComponent(param2ComboBox, GroupLayout.PREFERRED_SIZE, 151,
-												GroupLayout.PREFERRED_SIZE))
-						.addGroup(
-								gl_contentPane.createSequentialGroup()
-										.addComponent(param3Text, GroupLayout.PREFERRED_SIZE, 151,
+										.addComponent(annotationComboBox, 0, GroupLayout.DEFAULT_SIZE,
+												Short.MAX_VALUE))))
+						.addGap(87)
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+								.addComponent(lblCustomReturnType)
+								.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
+										.addComponent(lblReturnType, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)
-										.addGap(151).addComponent(param3ComboBox, GroupLayout.PREFERRED_SIZE, 151,
-												GroupLayout.PREFERRED_SIZE))
-						.addGroup(
-								gl_contentPane.createSequentialGroup()
-										.addComponent(param4Text, GroupLayout.PREFERRED_SIZE, 151,
-												GroupLayout.PREFERRED_SIZE)
-										.addGap(151).addComponent(param4ComboBox, GroupLayout.PREFERRED_SIZE, 151,
-												GroupLayout.PREFERRED_SIZE))
-						.addComponent(lblMethodDescription, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
-						.addGroup(gl_contentPane.createSequentialGroup().addGap(155).addComponent(btnValidate,
-								GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE))
-						.addGroup(gl_contentPane.createSequentialGroup().addGap(155).addComponent(btnAdd,
-								GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE))
-						.addGroup(
-								gl_contentPane.createParallelGroup(Alignment.TRAILING, false).addComponent(filePathText)
-										.addGroup(gl_contentPane.createSequentialGroup().addGap(161)
-												.addComponent(lblAddMethodDetails, GroupLayout.PREFERRED_SIZE, 151,
+										.addComponent(lblAccessSpecifier, GroupLayout.PREFERRED_SIZE, 151,
+												GroupLayout.PREFERRED_SIZE)))
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
+								.addGroup(gl_contentPane.createSequentialGroup().addGap(34).addComponent(
+										returnTypeComboBox, GroupLayout.PREFERRED_SIZE, 151,
+										GroupLayout.PREFERRED_SIZE))
+								.addGroup(gl_contentPane.createSequentialGroup()
+										.addPreferredGap(ComponentPlacement.RELATED)
+										.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+												.addComponent(accessSpecifierComboBox, GroupLayout.PREFERRED_SIZE, 152,
 														GroupLayout.PREFERRED_SIZE)
-												.addGap(314)))
-						.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING, false)
-								.addGroup(gl_contentPane.createSequentialGroup().addGap(10)
-										.addComponent(methodDescriptionText))
-								.addGroup(Alignment.LEADING, gl_contentPane.createSequentialGroup()
+												.addComponent(customReturnText, GroupLayout.PREFERRED_SIZE, 152,
+														GroupLayout.PREFERRED_SIZE))))
+						.addGap(55))
+				.addGroup(Alignment.TRAILING,
+						gl_contentPane.createSequentialGroup().addGap(122)
+								.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 										.addComponent(param5Text, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)
-										.addGap(151).addComponent(param5ComboBox, GroupLayout.PREFERRED_SIZE, 151,
-												GroupLayout.PREFERRED_SIZE))))
-				.addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
-		gl_contentPane
-				.setVerticalGroup(
-						gl_contentPane.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_contentPane.createSequentialGroup().addGap(1)
-										.addComponent(lblFilePath, GroupLayout.PREFERRED_SIZE, 25,
+								.addComponent(param4Text, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
+								.addComponent(param3Text, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
+								.addComponent(param2Text, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
+								.addComponent(param1Text, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblParameterName, GroupLayout.PREFERRED_SIZE, 151,
+										GroupLayout.PREFERRED_SIZE))
+						.addGap(208)
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+								.addComponent(lblParameterType, GroupLayout.PREFERRED_SIZE, 151,
+										GroupLayout.PREFERRED_SIZE)
+								.addComponent(param1ComboBox, 0, 151, Short.MAX_VALUE)
+								.addComponent(param2ComboBox, 0, 151, Short.MAX_VALUE)
+								.addComponent(param3ComboBox, 0, 151, Short.MAX_VALUE)
+								.addComponent(param4ComboBox, 0, 151, Short.MAX_VALUE)
+								.addComponent(param5ComboBox, 0, 151, Short.MAX_VALUE)).addGap(162))
+				.addGroup(gl_contentPane.createSequentialGroup().addGap(33)
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+								.addGroup(gl_contentPane.createSequentialGroup()
+										.addComponent(lblMethodDescription, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)
-								.addComponent(filePathText, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(ComponentPlacement.RELATED)
-								.addComponent(lblAddMethodDetails, GroupLayout.PREFERRED_SIZE, 25,
-										GroupLayout.PREFERRED_SIZE)
-				.addGap(31)
-				.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addContainerGap())
+						.addGroup(gl_contentPane.createSequentialGroup().addGroup(gl_contentPane
+								.createParallelGroup(Alignment.TRAILING)
+								.addComponent(methodDescriptionText, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 723,
+										Short.MAX_VALUE)
+								.addGroup(gl_contentPane.createSequentialGroup()
+										.addComponent(btnValidate, GroupLayout.PREFERRED_SIZE, 151,
+												GroupLayout.PREFERRED_SIZE)
+										.addPreferredGap(ComponentPlacement.RELATED, 421, Short.MAX_VALUE).addComponent(
+												btnAdd, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)))
+								.addGap(38))))
+				.addGroup(gl_contentPane.createSequentialGroup().addGap(316)
+						.addComponent(lblAddMethodDetails, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
+						.addContainerGap(327, Short.MAX_VALUE)));
+		gl_contentPane
+				.setVerticalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_contentPane.createSequentialGroup().addGap(32)
+								.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE).addComponent(btnBrowse)
+										.addComponent(filePathText, GroupLayout.PREFERRED_SIZE, 25,
+												GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblFilePath, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+				.addGap(18)
+				.addComponent(lblAddMethodDetails, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+				.addGap(19)
+				.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
 						.addComponent(lblName, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(methodNameText, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-				.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(lblReturnType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(returnTypeComboBox, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-				.addGroup(
-						gl_contentPane.createParallelGroup(Alignment.LEADING)
-								.addComponent(lblAccessModifier, GroupLayout.PREFERRED_SIZE, 25,
-										GroupLayout.PREFERRED_SIZE)
-								.addComponent(accessModifierComboBox, GroupLayout.PREFERRED_SIZE, 25,
-										GroupLayout.PREFERRED_SIZE))
-				.addGroup(
-						gl_contentPane.createParallelGroup(Alignment.LEADING)
-								.addComponent(lblAccessSpecifier, GroupLayout.PREFERRED_SIZE, 25,
-										GroupLayout.PREFERRED_SIZE)
-								.addComponent(accessSpecifierComboBox, GroupLayout.PREFERRED_SIZE, 25,
-										GroupLayout.PREFERRED_SIZE))
-				.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(lblParameterName, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(lblParameterType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-				.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(param1Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(param1ComboBox, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-				.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(param2Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(param2ComboBox, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-				.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(param3Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(param3ComboBox, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-				.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(param4Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(param4ComboBox, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
-				.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-						.addComponent(param5Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-						.addComponent(param5ComboBox, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+						.addComponent(methodNameText, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+						.addComponent(returnTypeComboBox, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblReturnType, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
 				.addGap(25)
-				.addComponent(lblMethodDescription, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-				.addPreferredGap(ComponentPlacement.RELATED)
-				.addComponent(methodDescriptionText, GroupLayout.PREFERRED_SIZE, 66, GroupLayout.PREFERRED_SIZE)
-				.addGap(18).addComponent(btnValidate, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-				.addGap(18).addComponent(btnAdd, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
-				.addGap(88)));
+				.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(lblAccessModifier, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+						.addComponent(accessModifierComboBox, GroupLayout.PREFERRED_SIZE, 25,
+								GroupLayout.PREFERRED_SIZE)
+						.addComponent(customReturnText, GroupLayout.PREFERRED_SIZE, 23, GroupLayout.PREFERRED_SIZE)
+						.addComponent(lblCustomReturnType))
+				.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING).addGroup(gl_contentPane
+						.createSequentialGroup().addGap(81)
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+								.addComponent(lblParameterType, GroupLayout.PREFERRED_SIZE, 25,
+										GroupLayout.PREFERRED_SIZE)
+								.addComponent(lblParameterName, GroupLayout.PREFERRED_SIZE, 25,
+										GroupLayout.PREFERRED_SIZE))
+						.addPreferredGap(ComponentPlacement.UNRELATED)
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+								.addComponent(param1ComboBox, GroupLayout.PREFERRED_SIZE, 25,
+										GroupLayout.PREFERRED_SIZE)
+								.addComponent(param1Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+						.addGap(18)
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+								.addComponent(param2ComboBox, GroupLayout.PREFERRED_SIZE, 25,
+										GroupLayout.PREFERRED_SIZE)
+								.addComponent(param2Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+						.addGap(18)
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+								.addComponent(param3ComboBox, GroupLayout.PREFERRED_SIZE, 25,
+										GroupLayout.PREFERRED_SIZE)
+								.addComponent(param3Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+						.addGap(18)
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+								.addComponent(param4ComboBox, GroupLayout.PREFERRED_SIZE, 25,
+										GroupLayout.PREFERRED_SIZE)
+								.addComponent(param4Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE))
+						.addGap(18)
+						.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+								.addComponent(param5ComboBox, GroupLayout.PREFERRED_SIZE, 25,
+										GroupLayout.PREFERRED_SIZE)
+								.addComponent(param5Text, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)))
+						.addGroup(gl_contentPane.createSequentialGroup().addGap(33)
+								.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+										.addComponent(lblAnnotation)
+										.addComponent(annotationComboBox, GroupLayout.PREFERRED_SIZE, 24,
+												GroupLayout.PREFERRED_SIZE)
+										.addComponent(lblAccessSpecifier, GroupLayout.PREFERRED_SIZE, 25,
+												GroupLayout.PREFERRED_SIZE)
+										.addComponent(accessSpecifierComboBox, GroupLayout.PREFERRED_SIZE, 25,
+												GroupLayout.PREFERRED_SIZE))))
+								.addGap(51)
+								.addComponent(lblMethodDescription, GroupLayout.PREFERRED_SIZE, 25,
+										GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(ComponentPlacement.UNRELATED)
+								.addComponent(methodDescriptionText, GroupLayout.PREFERRED_SIZE, 66,
+										GroupLayout.PREFERRED_SIZE)
+				.addGap(18)
+				.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
+						.addComponent(btnValidate, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
+						.addComponent(btnAdd, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)).addGap(36)));
 		contentPane.setLayout(gl_contentPane);
 	}
-
 }
