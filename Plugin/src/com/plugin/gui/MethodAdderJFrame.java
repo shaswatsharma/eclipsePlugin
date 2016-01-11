@@ -2,6 +2,8 @@ package com.plugin.gui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -18,28 +20,26 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import com.plugin.utils.FileAppend;
+import com.plugin.utils.FileInfo;
+import com.plugin.validate.Validate;
+
 public class MethodAdderJFrame extends JFrame {
 
 	private JPanel contentPane;
 	private JTextField filePathText;
 	private JTextField methodNameText;
-	private JTextField param1Text;
-	private JTextField param2Text;
-	private JTextField param3Text;
-	private JTextField param4Text;
-	private JTextField param5Text;
+	private JTextField param1Text, param2Text, param3Text, param4Text, param5Text;
 	private JTextArea methodDescriptionText;
-	private JComboBox param1ComboBox;
-	private JComboBox param2ComboBox;
-	private JComboBox param3ComboBox;
-	private JComboBox param4ComboBox;
-	private JComboBox param5ComboBox;
+	private JComboBox param1ComboBox, param2ComboBox, param3ComboBox, param4ComboBox, param5ComboBox;
 	private static MethodAdderJFrame frame;
 	private JButton btnAdd;
 
 	private String[] type = { "void", "int", "boolean", "long", "String" };
 	private String[] accessModifiers = { "default", "private", "public", "protected" };
 	private String[] accessSpecifiers = { "default", "static", "final" };
+	private final String KEY_NAME = "name";
+	private final String KEY_TYPE = "type";
 
 	/**
 	 * Launch the application.
@@ -61,7 +61,7 @@ public class MethodAdderJFrame extends JFrame {
 
 		btnAdd = new JButton("Add Method");
 		btnAdd.setEnabled(false);
-		
+
 		JLabel lblFilePath = new JLabel("File Path");
 
 		filePathText = new JTextField();
@@ -289,6 +289,7 @@ public class MethodAdderJFrame extends JFrame {
 			public void actionPerformed(ActionEvent arg0) {
 				String filePath = filePathText.getText().trim();
 				String methodName = methodNameText.getText().trim();
+				String returnType = (String) returnTypeComboBox.getSelectedItem();
 				String param1 = param1Text.getText().trim();
 				String param1Type = (String) param1ComboBox.getSelectedItem();
 				String param2 = null;
@@ -296,9 +297,9 @@ public class MethodAdderJFrame extends JFrame {
 				String param3Type = null;
 				String param4Type = null;
 				String param5Type = null;
-				String param3 = param3Text.getText().trim();
-				String param4 = param3Text.getText().trim();
-				String param5 = param5Text.getText().trim();
+				String param3 = null;
+				String param4 = null;
+				String param5 = null;
 				String methodDescription = methodDescriptionText.getText().trim();
 
 				String accessModifier = (String) accessModifierComboBox.getSelectedItem();
@@ -336,15 +337,76 @@ public class MethodAdderJFrame extends JFrame {
 					isError = true;
 					errorLog += "Please Enter method description\n";
 				}
-				
-				if(isError){
+
+				if (isError) {
 					JOptionPane.showMessageDialog(frame, errorLog);
+				} else {
+					FileInfo fileInfo = new FileInfo();
+					fileInfo.setFilePath(filePath.replace("\\", "\\\\"));
+					fileInfo.setAccessModifier(accessModifier);
+					fileInfo.setAccessSpecifier(accessSpecifier);
+					fileInfo.setComments(methodDescription);
+					fileInfo.setName(methodName);
+					fileInfo.setReturnType(returnType);
+
+					Validate validate = new Validate();
+
+					ArrayList<HashMap<String, String>> argumentList = new ArrayList<HashMap<String, String>>();
+					if (param1.equals("") || param1.isEmpty()) {
+						if (validate.validateAll(fileInfo)) {
+							FileAppend fileAppend = new FileAppend(fileInfo.createMethod(), fileInfo.getFilePath());
+							JOptionPane.showMessageDialog(frame, "Method addedd successfully");
+						} else {
+							JOptionPane.showMessageDialog(frame, "Please Check the data.");
+						}
+
+					} else {
+						if (param1 != "" && param1 != null && !param1.isEmpty()) {
+							HashMap<String, String> map = new HashMap<String, String>();
+							map.put(KEY_NAME, param1);
+							map.put(KEY_TYPE, param1Type);
+							argumentList.add(map);
+
+							if (param2 != "" && param2 != null && !param2.isEmpty()) {
+								map = new HashMap<String, String>();
+								map.put(KEY_NAME, param2);
+								map.put(KEY_TYPE, param2Type);
+								argumentList.add(map);
+
+								if (param3 != "" && param3 != null && !param3.isEmpty()) {
+									map = new HashMap<String, String>();
+									map.put(KEY_NAME, param3);
+									map.put(KEY_TYPE, param3Type);
+									argumentList.add(map);
+
+									if (param4 != "" && param4 != null && !param4.isEmpty()) {
+										map = new HashMap<String, String>();
+										map.put(KEY_NAME, param4);
+										map.put(KEY_TYPE, param4Type);
+										argumentList.add(map);
+
+										if (param5 != "" && param5 != null && !param5.isEmpty()) {
+											map = new HashMap<String, String>();
+											map.put(KEY_NAME, param5);
+											map.put(KEY_TYPE, param5Type);
+											argumentList.add(map);
+										}
+									}
+								}
+							}
+						}
+						fileInfo.setList(argumentList);
+						if (validate.validateAll(fileInfo)) {
+							FileAppend fileAppend = new FileAppend(fileInfo.createMethod(), fileInfo.getFilePath());
+							JOptionPane.showMessageDialog(frame, "Method addedd successfully");
+						} else {
+							JOptionPane.showMessageDialog(frame, "Please Check the data.");
+						}
+					}
 				}
 
 			}
 		});
-
-		
 
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
