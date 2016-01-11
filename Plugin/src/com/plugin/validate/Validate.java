@@ -1,6 +1,8 @@
 package com.plugin.validate;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,6 +16,9 @@ import com.plugin.utils.Filereader;
  */
 public class Validate {
 	private String error = "";
+	private final String KEY_NAME = "name";
+	private final String KEY_TYPE = "type";
+
 	/*
 	 * This method validates the name of the method
 	 */
@@ -27,49 +32,67 @@ public class Validate {
 			error = error + "\nMethod name starts with a digit\n";
 			return false;
 		}
-		
-		// This condition returns false if method is already present 
+
+		// This condition returns false if method is already present
 		String val = null;
-        String parName = null;
-        String parType = null;
-        String resultMethod = "";
-        List<HashMap<String, String>> list = fileInfo.getList();
-        if (list != null) {
-              if (list.size() != 0) {
-                    HashMap<String, String> map = (HashMap<String, String>) list.get(0);
-                    parName = map.get("name");
-                    parType = map.get("type");
-                    if (parName != null && parType != null) {
-                          resultMethod = resultMethod + parType + " " + parName;
-                    }
-              }
-              for (int i = 1; i < list.size(); i++) {
-                    HashMap<String, String> map = (HashMap<String, String>) list.get(i);
+		String parName = null;
+		String parType = null;
+		String resultMethod = "";
+		List<HashMap<String, String>> list = fileInfo.getList();
+		if (list != null) {
+			if (list.size() != 0) {
+				HashMap<String, String> map = (HashMap<String, String>) list.get(0);
+				parName = map.get("name");
+				parType = map.get("type");
+				if (parName != null && parType != null) {
+					resultMethod = resultMethod + parType + " " + parName;
+				}
+			}
+			for (int i = 1; i < list.size(); i++) {
+				HashMap<String, String> map = (HashMap<String, String>) list.get(i);
 
-                    parName = (String) map.get("name");
-                    parType = (String) map.get("type");
-                    if (parName != null && parType != null) {
-                          val = "," + parType + " " + parName;
-                          resultMethod = resultMethod + val;
-                    }
+				parName = (String) map.get("name");
+				parType = (String) map.get("type");
+				if (parName != null && parType != null) {
+					val = "," + parType + " " + parName;
+					resultMethod = resultMethod + val;
+				}
 
-              }
-        }
-        if (str.toLowerCase().contains(" " + name.toLowerCase() + "(" + resultMethod)) {
-            error = error + "\nMethod already exists\n";  
-        	return false;
-        }
-        
+			}
+		}
+		if (str.toLowerCase().contains(" " + name.toLowerCase() + "(" + resultMethod)) {
+			error = error + "\nMethod already exists\n";
+			return false;
+		}
+
 		// Here we are checking either method name is violated or not using
 		// regular expression
 		Pattern p = Pattern.compile("^[a-z0-9$_]++$", Pattern.CASE_INSENSITIVE);
 		Matcher m = p.matcher(name);
 		boolean b = m.find();
-		if(b==false) {
+		if (b == false) {
 			error = error + "\nSpecial characters not allowed\n";
 		}
 		return b;
 
+	}
+
+	/*
+	 * This method check that no two parameters are same
+	 */
+	private boolean isParamaterUnique(FileInfo fileInfo) {
+		ArrayList<HashMap<String, String>> list = fileInfo.getList();
+		if (fileInfo.getList() != null) {
+			for (int i = 0; i < list.size(); i++) {
+				for (int j = i + 1; j < list.size(); j++) {
+					if (list.get(i).get(KEY_NAME).toLowerCase().equals(list.get(j).get(KEY_NAME).toLowerCase())) {
+						error = error + "\n Argument name cannot be same.\n";
+						return false;
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	/*
@@ -88,7 +111,7 @@ public class Validate {
 					error = error + "\nParameter name starts with digit\n";
 					return false;
 				}
-				
+
 				// Here we are checking either method name is violated or not
 				// using
 				// regular expression
@@ -108,7 +131,7 @@ public class Validate {
 	 * Checks whether the no of arguments doesn't exceed the limit
 	 */
 	private boolean isValidNumberOfArguments(FileInfo fileInfo) {
-		if (fileInfo.getList()!=null && fileInfo.getList().size() > 5)
+		if (fileInfo.getList() != null && fileInfo.getList().size() > 5)
 			return false;
 		return true;
 	}
@@ -130,7 +153,7 @@ public class Validate {
 	public Log validateAll(FileInfo fileInfo) {
 		Log log = new Log();
 		boolean result = isValidMethodName(fileInfo) && isValidParameterName(fileInfo) && isCommentAvailable(fileInfo)
-				&& isValidNumberOfArguments(fileInfo);
+				&& isValidNumberOfArguments(fileInfo) && isParamaterUnique(fileInfo);
 		log.setResult(result);
 		log.setError(error);
 		return log;

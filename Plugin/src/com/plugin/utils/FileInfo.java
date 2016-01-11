@@ -113,16 +113,18 @@ public class FileInfo {
 				resultMethod = resultMethod + parType + " " + parName;
 			}
 		}
-		for (int i = 1; i < list.size(); i++) {
-			HashMap<String, String> map = (HashMap<String, String>) list.get(i);
+		if (list != null) {
+			for (int i = 1; i < list.size(); i++) {
+				HashMap<String, String> map = (HashMap<String, String>) list.get(i);
 
-			parName = (String) map.get(KEY_NAME);
-			parType = (String) map.get(KEY_TYPE);
-			if (parName != null && parType != null) {
-				val = ", " + parType + " " + parName;
-				resultMethod = resultMethod + val;
+				parName = (String) map.get(KEY_NAME);
+				parType = (String) map.get(KEY_TYPE);
+				if (parName != null && parType != null) {
+					val = ", " + parType + " " + parName;
+					resultMethod = resultMethod + val;
+				}
+
 			}
-
 		}
 		resultMethod = resultMethod + ") {";
 		if (returnType != "void") {
@@ -140,18 +142,21 @@ public class FileInfo {
 			String customReturnType = null;
 			if (isReturnTypeCustom == true)
 				customReturnType = getReturnType();
-			BufferedWriter out = new BufferedWriter(new FileWriter(destination, true));
-			out.write(customReturnType);
-			out.newLine();
+			BufferedWriter out = new BufferedWriter(
+					new FileWriter("C:\\Users\\I323305\\Desktop\\Customtypes.txt", true));
+			out.write("\r\n" + customReturnType);
+			// out.newLine();
 			out.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	public String getCustomReturnType() {
-		Filereader fileReader = new Filereader("C:\\Users\\I323334\\Desktop\\Test.java");
-		return fileReader.readContents();
+
+	public String[] getCustomReturnType() {
+		Filereader fileReader = new Filereader("C:\\Users\\I323305\\Desktop\\Customtypes.txt");
+		String content = fileReader.readContents();
+		String[] dataTypes = content.split("\n");
+		return dataTypes;
 	}
 
 	/*

@@ -63,9 +63,10 @@ public class MethodAdderJFrame extends JFrame {
 	 */
 	public MethodAdderJFrame() {
 		fileInfo = new FileInfo();
-		
+		setTitle("Method Adder and Verifier");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 820, 772);
+		setResizable(false);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -95,18 +96,23 @@ public class MethodAdderJFrame extends JFrame {
 
 		JLabel lblReturnType = new JLabel("Return Type");
 
+		String[] customTypes = fileInfo.getCustomReturnType();
+
 		JComboBox returnTypeComboBox = new JComboBox(type);
+
+		for (int i = 0; i < customTypes.length; i++)
+			returnTypeComboBox.addItem(customTypes[i]);
 
 		returnTypeComboBox.addItemListener(new ItemListener() {
 
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String selectedValue = (String)returnTypeComboBox.getSelectedItem();
+					String selectedValue = (String) returnTypeComboBox.getSelectedItem();
 					if (selectedValue.equals("Custom")) {
 						customReturnText.setEnabled(true);
 						fileInfo.setReturnTypeCustom(true);
-					} else{
+					} else {
 						customReturnText.setEnabled(false);
 						fileInfo.setReturnTypeCustom(false);
 					}
@@ -393,10 +399,10 @@ public class MethodAdderJFrame extends JFrame {
 					fileInfo.setComments(methodDescription);
 					fileInfo.setName(methodName);
 					fileInfo.setAnnotation((String) annotationComboBox.getSelectedItem());
-					
-					if(!fileInfo.isReturnTypeCustom()){
+
+					if (!fileInfo.isReturnTypeCustom()) {
 						fileInfo.setReturnType(returnType);
-					}else{
+					} else {
 						fileInfo.setReturnType(customReturnText.getText().trim());
 					}
 
@@ -410,6 +416,7 @@ public class MethodAdderJFrame extends JFrame {
 									"Your Input is Validated. Please Click Add to add your inputs.");
 							btnAdd.setEnabled(true);
 						} else {
+							btnAdd.setEnabled(false);
 							JOptionPane.showMessageDialog(frame, "Invalid Input!\n" + log.getError());
 						}
 
@@ -455,6 +462,7 @@ public class MethodAdderJFrame extends JFrame {
 									"Your Input is Validated. Please Click Add to add your inputs.");
 							btnAdd.setEnabled(true);
 						} else {
+							btnAdd.setEnabled(false);
 							JOptionPane.showMessageDialog(frame, "Invalid Input!\n" + log.getError());
 						}
 					}
@@ -483,12 +491,12 @@ public class MethodAdderJFrame extends JFrame {
 		GroupLayout gl_contentPane = new GroupLayout(contentPane);
 		gl_contentPane.setHorizontalGroup(gl_contentPane
 				.createParallelGroup(
-						Alignment.LEADING)
+						Alignment.TRAILING)
 				.addGroup(gl_contentPane.createSequentialGroup()
 						.addComponent(lblFilePath, GroupLayout.PREFERRED_SIZE, 57, GroupLayout.PREFERRED_SIZE)
 						.addGap(18)
 						.addComponent(filePathText, GroupLayout.PREFERRED_SIZE, 556, GroupLayout.PREFERRED_SIZE)
-						.addGap(29).addComponent(btnBrowse).addContainerGap(67, Short.MAX_VALUE))
+						.addGap(29).addComponent(btnBrowse).addContainerGap(77, Short.MAX_VALUE))
 				.addGroup(gl_contentPane.createSequentialGroup().addContainerGap()
 						.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 								.addGroup(gl_contentPane.createSequentialGroup()
@@ -505,8 +513,7 @@ public class MethodAdderJFrame extends JFrame {
 								.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 										.addComponent(accessModifierComboBox, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)
-										.addComponent(annotationComboBox, 0, GroupLayout.DEFAULT_SIZE,
-												Short.MAX_VALUE))))
+										.addComponent(annotationComboBox, 0, 161, Short.MAX_VALUE))))
 						.addGap(87)
 						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
 								.addComponent(lblCustomReturnType)
@@ -515,19 +522,17 @@ public class MethodAdderJFrame extends JFrame {
 												GroupLayout.PREFERRED_SIZE)
 										.addComponent(lblAccessSpecifier, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)))
+						.addGap(33)
 						.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
-								.addGroup(gl_contentPane.createSequentialGroup().addGap(34).addComponent(
-										returnTypeComboBox, GroupLayout.PREFERRED_SIZE, 151,
-										GroupLayout.PREFERRED_SIZE))
-								.addGroup(gl_contentPane.createSequentialGroup()
-										.addPreferredGap(ComponentPlacement.RELATED)
-										.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-												.addComponent(accessSpecifierComboBox, GroupLayout.PREFERRED_SIZE, 152,
-														GroupLayout.PREFERRED_SIZE)
-												.addComponent(customReturnText, GroupLayout.PREFERRED_SIZE, 152,
-														GroupLayout.PREFERRED_SIZE))))
+								.addComponent(returnTypeComboBox, GroupLayout.PREFERRED_SIZE, 151,
+										GroupLayout.PREFERRED_SIZE)
+								.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
+										.addComponent(accessSpecifierComboBox, GroupLayout.PREFERRED_SIZE, 152,
+												GroupLayout.PREFERRED_SIZE)
+										.addComponent(customReturnText, GroupLayout.PREFERRED_SIZE, 152,
+												GroupLayout.PREFERRED_SIZE)))
 						.addGap(55))
-				.addGroup(Alignment.TRAILING,
+				.addGroup(
 						gl_contentPane.createSequentialGroup().addGap(122)
 								.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
 										.addComponent(param5Text, GroupLayout.PREFERRED_SIZE, 151,
@@ -542,11 +547,11 @@ public class MethodAdderJFrame extends JFrame {
 						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
 								.addComponent(lblParameterType, GroupLayout.PREFERRED_SIZE, 151,
 										GroupLayout.PREFERRED_SIZE)
-								.addComponent(param1ComboBox, 0, 151, Short.MAX_VALUE)
-								.addComponent(param2ComboBox, 0, 151, Short.MAX_VALUE)
-								.addComponent(param3ComboBox, 0, 151, Short.MAX_VALUE)
-								.addComponent(param4ComboBox, 0, 151, Short.MAX_VALUE)
-								.addComponent(param5ComboBox, 0, 151, Short.MAX_VALUE)).addGap(162))
+								.addComponent(param1ComboBox, 0, 161, Short.MAX_VALUE)
+								.addComponent(param2ComboBox, 0, 161, Short.MAX_VALUE)
+								.addComponent(param3ComboBox, 0, 161, Short.MAX_VALUE)
+								.addComponent(param4ComboBox, 0, 161, Short.MAX_VALUE)
+								.addComponent(param5ComboBox, 0, 161, Short.MAX_VALUE)).addGap(162))
 				.addGroup(gl_contentPane.createSequentialGroup().addGap(33)
 						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
 								.addGroup(gl_contentPane.createSequentialGroup()
@@ -555,17 +560,17 @@ public class MethodAdderJFrame extends JFrame {
 										.addContainerGap())
 						.addGroup(gl_contentPane.createSequentialGroup().addGroup(gl_contentPane
 								.createParallelGroup(Alignment.TRAILING)
-								.addComponent(methodDescriptionText, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 723,
+								.addComponent(methodDescriptionText, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 733,
 										Short.MAX_VALUE)
 								.addGroup(gl_contentPane.createSequentialGroup()
 										.addComponent(btnValidate, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)
-										.addPreferredGap(ComponentPlacement.RELATED, 421, Short.MAX_VALUE).addComponent(
+										.addPreferredGap(ComponentPlacement.RELATED, 431, Short.MAX_VALUE).addComponent(
 												btnAdd, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)))
 								.addGap(38))))
 				.addGroup(gl_contentPane.createSequentialGroup().addGap(316)
 						.addComponent(lblAddMethodDetails, GroupLayout.PREFERRED_SIZE, 151, GroupLayout.PREFERRED_SIZE)
-						.addContainerGap(327, Short.MAX_VALUE)));
+						.addContainerGap(337, Short.MAX_VALUE)));
 		gl_contentPane
 				.setVerticalGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
 						.addGroup(gl_contentPane.createSequentialGroup().addGap(32)
