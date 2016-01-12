@@ -15,6 +15,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
@@ -23,6 +24,8 @@ import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 
 import com.plugin.log.Log;
 import com.plugin.utils.FileAppend;
@@ -84,6 +87,9 @@ public class MethodAdderJFrame extends JFrame {
 		customReturnText = new JTextField();
 		customReturnText.setColumns(10);
 		customReturnText.setEnabled(false);
+		
+//		JList<String> list = new JList<>(type);
+//		AutoCompleteDecorator.decorate(list, customReturnText);
 
 		JLabel lblAddMethodDetails = new JLabel("Add Method Details");
 
@@ -99,6 +105,8 @@ public class MethodAdderJFrame extends JFrame {
 		String[] customTypes = fileInfo.getCustomReturnType();
 
 		JComboBox returnTypeComboBox = new JComboBox(type);
+		AutoCompleteDecorator.decorate(returnTypeComboBox);
+
 
 		for (int i = 0; i < customTypes.length; i++)
 			returnTypeComboBox.addItem(customTypes[i]);
