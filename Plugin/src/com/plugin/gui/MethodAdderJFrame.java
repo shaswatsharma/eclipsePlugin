@@ -31,6 +31,7 @@ import com.plugin.log.Log;
 import com.plugin.utils.FileAppend;
 import com.plugin.utils.FileInfo;
 import com.plugin.validate.Validate;
+import java.awt.Color;
 
 public class MethodAdderJFrame extends JFrame {
 
@@ -53,11 +54,17 @@ public class MethodAdderJFrame extends JFrame {
 	private final String KEY_TYPE = "type";
 	private FileInfo fileInfo;
 
+	private enum Variables {
+		none, Override,Deprecated, SupperssWarnings, Entity 
+
+	}
+
 	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
 		frame = new MethodAdderJFrame();
+		
 		frame.setVisible(true);
 	}
 
@@ -87,15 +94,47 @@ public class MethodAdderJFrame extends JFrame {
 		customReturnText = new JTextField();
 		customReturnText.setColumns(10);
 		customReturnText.setEnabled(false);
-		
-//		JList<String> list = new JList<>(type);
-//		AutoCompleteDecorator.decorate(list, customReturnText);
+
+		// JList<String> list = new JList<>(type);
+		// AutoCompleteDecorator.decorate(list, customReturnText);
 
 		JLabel lblAddMethodDetails = new JLabel("Add Method Details");
 
 		JLabel lblName = new JLabel("Name");
 
+		JLabel numOfChars = new JLabel("-100");
+		numOfChars.setForeground(Color.RED);
+
 		methodDescriptionText = new JTextArea();
+		methodDescriptionText.setLineWrap(true);
+		methodDescriptionText.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				validateNumberOfChars();
+			}
+
+			private void validateNumberOfChars() {
+				int length = methodDescriptionText.getText().length();
+				if (length < 100) {
+					numOfChars.setText("-" + (100 - length));
+					numOfChars.setForeground(Color.RED);
+				} else {
+					numOfChars.setText("" + length);
+					numOfChars.setForeground(Color.BLACK);
+				}
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				validateNumberOfChars();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				validateNumberOfChars();
+			}
+		});
 
 		methodNameText = new JTextField();
 		methodNameText.setColumns(10);
@@ -106,7 +145,6 @@ public class MethodAdderJFrame extends JFrame {
 
 		JComboBox returnTypeComboBox = new JComboBox(type);
 		AutoCompleteDecorator.decorate(returnTypeComboBox);
-
 
 		for (int i = 0; i < customTypes.length; i++)
 			returnTypeComboBox.addItem(customTypes[i]);
@@ -142,16 +180,36 @@ public class MethodAdderJFrame extends JFrame {
 
 		param1ComboBox = new JComboBox(returnType);
 		param1ComboBox.setEnabled(false);
+		AutoCompleteDecorator.decorate(param1ComboBox);
+		for (int i = 0; i < customTypes.length; i++)
+			param1ComboBox.addItem(customTypes[i]);
+
 		param2ComboBox = new JComboBox(returnType);
 		param2ComboBox.setEnabled(false);
+		AutoCompleteDecorator.decorate(param2ComboBox);
+		for (int i = 0; i < customTypes.length; i++)
+			param2ComboBox.addItem(customTypes[i]);
+
 		param3ComboBox = new JComboBox(returnType);
 		param3ComboBox.setEnabled(false);
+		AutoCompleteDecorator.decorate(param3ComboBox);
+		for (int i = 0; i < customTypes.length; i++)
+			param3ComboBox.addItem(customTypes[i]);
+
 		param4ComboBox = new JComboBox(returnType);
 		param4ComboBox.setEnabled(false);
+		AutoCompleteDecorator.decorate(param4ComboBox);
+		for (int i = 0; i < customTypes.length; i++)
+			param4ComboBox.addItem(customTypes[i]);
+
 		param5ComboBox = new JComboBox(returnType);
 		param5ComboBox.setEnabled(false);
+		AutoCompleteDecorator.decorate(param5ComboBox);
+		for (int i = 0; i < customTypes.length; i++)
+			param5ComboBox.addItem(customTypes[i]);
 
-		annotationComboBox = new JComboBox(annotation);
+
+		annotationComboBox = new JComboBox(Variables.values());
 
 		param1Text = new JTextField();
 		param1Text.setColumns(10);
@@ -393,9 +451,9 @@ public class MethodAdderJFrame extends JFrame {
 					isError = true;
 					errorLog += "Please Enter method name\n";
 				}
-				if (methodDescription.isEmpty()) {
+				if (methodDescription.length() < 100) {
 					isError = true;
-					errorLog += "Please Enter method description\n";
+					errorLog += "Please Enter method description of atleast 100 characters\n";
 				}
 
 				if (isError) {
@@ -406,7 +464,7 @@ public class MethodAdderJFrame extends JFrame {
 					fileInfo.setAccessSpecifier(accessSpecifier);
 					fileInfo.setComments(methodDescription);
 					fileInfo.setName(methodName);
-					fileInfo.setAnnotation((String) annotationComboBox.getSelectedItem());
+					fileInfo.setAnnotation(annotationComboBox.getSelectedItem().toString());
 
 					if (!fileInfo.isReturnTypeCustom()) {
 						fileInfo.setReturnType(returnType);
@@ -560,16 +618,16 @@ public class MethodAdderJFrame extends JFrame {
 								.addComponent(param3ComboBox, 0, 161, Short.MAX_VALUE)
 								.addComponent(param4ComboBox, 0, 161, Short.MAX_VALUE)
 								.addComponent(param5ComboBox, 0, 161, Short.MAX_VALUE)).addGap(162))
-				.addGroup(gl_contentPane.createSequentialGroup().addGap(33)
-						.addGroup(gl_contentPane.createParallelGroup(Alignment.LEADING)
-								.addGroup(gl_contentPane.createSequentialGroup()
-										.addComponent(lblMethodDescription, GroupLayout.PREFERRED_SIZE, 151,
-												GroupLayout.PREFERRED_SIZE)
-										.addContainerGap())
-						.addGroup(gl_contentPane.createSequentialGroup().addGroup(gl_contentPane
-								.createParallelGroup(Alignment.TRAILING)
-								.addComponent(methodDescriptionText, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 733,
-										Short.MAX_VALUE)
+				.addGroup(gl_contentPane.createSequentialGroup().addGap(33).addGroup(gl_contentPane
+						.createParallelGroup(Alignment.LEADING)
+						.addGroup(gl_contentPane.createSequentialGroup()
+								.addComponent(lblMethodDescription, GroupLayout.PREFERRED_SIZE, 151,
+										GroupLayout.PREFERRED_SIZE)
+								.addPreferredGap(ComponentPlacement.UNRELATED).addComponent(numOfChars).addGap(564))
+						.addGroup(gl_contentPane.createSequentialGroup()
+								.addGroup(gl_contentPane.createParallelGroup(Alignment.TRAILING)
+										.addComponent(methodDescriptionText, Alignment.LEADING,
+												GroupLayout.DEFAULT_SIZE, 733, Short.MAX_VALUE)
 								.addGroup(gl_contentPane.createSequentialGroup()
 										.addComponent(btnValidate, GroupLayout.PREFERRED_SIZE, 151,
 												GroupLayout.PREFERRED_SIZE)
@@ -642,12 +700,13 @@ public class MethodAdderJFrame extends JFrame {
 												GroupLayout.PREFERRED_SIZE)
 										.addComponent(accessSpecifierComboBox, GroupLayout.PREFERRED_SIZE, 25,
 												GroupLayout.PREFERRED_SIZE))))
-								.addGap(51)
+				.addGap(51)
+				.addGroup(
+						gl_contentPane.createParallelGroup(Alignment.BASELINE)
 								.addComponent(lblMethodDescription, GroupLayout.PREFERRED_SIZE, 25,
 										GroupLayout.PREFERRED_SIZE)
-								.addPreferredGap(ComponentPlacement.UNRELATED)
-								.addComponent(methodDescriptionText, GroupLayout.PREFERRED_SIZE, 66,
-										GroupLayout.PREFERRED_SIZE)
+								.addComponent(numOfChars)).addPreferredGap(ComponentPlacement.UNRELATED)
+				.addComponent(methodDescriptionText, GroupLayout.PREFERRED_SIZE, 66, GroupLayout.PREFERRED_SIZE)
 				.addGap(18)
 				.addGroup(gl_contentPane.createParallelGroup(Alignment.BASELINE)
 						.addComponent(btnValidate, GroupLayout.PREFERRED_SIZE, 25, GroupLayout.PREFERRED_SIZE)
