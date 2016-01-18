@@ -4,7 +4,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Filereader {
@@ -20,10 +23,13 @@ public class Filereader {
 	private String filepath;
 	private Map<String, Integer> map = new HashMap<String, Integer>();
 	BufferedReader br = null;
-	
+
 	private final String KEY_FOR_LOC = "LOC";
 	private final String KEY_FOR_BLANK_LINES = "BL";
 	private final String KEY_FOR_COMMENTED_LINES = "CL";
+	private final String KEY_START = "Start";
+	private final String KEY_END = "End";
+	private final String KEY_COUNT = "Count";
 
 	public Filereader(String path) {// Constructor which takes File Path and
 									// calls "ReadContents" to read its contents
@@ -69,8 +75,8 @@ public class Filereader {
 		try {
 			br = new BufferedReader(new FileReader(filepath));
 			while ((line = br.readLine()) != null) {
-				
-				//This will count commented lines
+
+				// This will count commented lines
 				if (line.contains("/*"))
 					flag = true;
 
@@ -82,13 +88,13 @@ public class Filereader {
 
 				if (line.contains("//") && !flag)
 					lineOfComments++;
-				
-				//This part will count the blank lines
+
+				// This part will count the blank lines
 				if (line.trim().isEmpty()) {
 					blankLines++;
 				}
-				
-				//This will count total no of lines
+
+				// This will count total no of lines
 				loc++;
 			}
 
@@ -99,6 +105,68 @@ public class Filereader {
 			e.printStackTrace();
 		}
 		return map;
+	}
+	
+	public List<Map<String, Integer>> validateComments() {
+		List<Map<String, Integer>> list = null;
+		try {
+			list = new ArrayList<Map<String, Integer>>();
+			int i = 0;
+			LineNumberReader lr = new LineNumberReader(new FileReader(filepath));
+			String line = null;
+			int count = 0;
+			int start = 1;
+			boolean value = false;
+			while (true) {
+				Map<String, Integer> map = new HashMap<String, Integer>();
+				boolean flag = false;
+
+				if (!value && (line = lr.readLine()) != null) {
+					if (line.contains("class ")) {
+						value = true;
+						start = lr.getLineNumber();
+					}
+				}
+
+				if (value) {
+					while ((line = lr.readLine()) != null) {
+						if (count != 0 && line.trim().isEmpty()) {
+							count--;
+						}
+						if (line.contains("/*"))
+							flag = true;
+						
+						if (line.contains("/*") || line.contains("//")) {
+							break;
+						}
+						
+						count++;
+					}
+					if (count != 0) {
+						start++;
+						map.put(KEY_START, start);
+						map.put(KEY_END, lr.getLineNumber()-1);
+						map.put(KEY_COUNT, count);
+						list.add(map);
+					}
+
+					while (flag && (line = lr.readLine()) != null) {
+						if (line.contains("*/"))
+							break;
+					}
+					start = lr.getLineNumber();
+					//System.out.println(start + 1000);
+					count = 0;
+				}
+				if (line == null) {
+					lr.close();
+					break;
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return list;
 	}
 
 	// public static void main(String args[]) {

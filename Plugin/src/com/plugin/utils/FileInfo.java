@@ -14,8 +14,7 @@ public class FileInfo {
 	private final String KEY_NAME = "name";
 	private final String KEY_TYPE = "type";
 	private boolean isReturnTypeCustom = false;
-	private String beforeComment=null;
-	
+	private String beforeComment = "";
 
 	public boolean isReturnTypeCustom() {
 		return isReturnTypeCustom;
@@ -84,10 +83,11 @@ public class FileInfo {
 	public void setList(ArrayList<HashMap<String, String>> list) {
 		this.list = list;
 	}
-/**
- * 
- * @param comments
- */
+
+	/**
+	 * 
+	 * @param comments
+	 */
 	public void setComments(String comments) {
 		this.comments = comments;
 	}
@@ -96,35 +96,36 @@ public class FileInfo {
 		return comments;
 	}
 
-	private void createInitialCommentSection(){//To create comment section before appending the new method
-		beforeComment=beforeComment + "/**" + "\n" + comments + "\n" ;
-		String parName=null;
+	private void createInitialCommentSection() {// To create comment section
+												// before appending the new
+												// method
+		beforeComment = beforeComment + "\n/**" + "\n" + comments + "\n \n";
+		String parName = null;
 		if (list != null) {
 			for (int i = 0; i < list.size(); i++) {
 				HashMap<String, String> map = (HashMap<String, String>) list.get(i);
 
 				parName = (String) map.get(KEY_NAME);
-				
+
 				if (parName != null) {
-					beforeComment = beforeComment  + "@param" + " " + parName +"\n";
-					
+					beforeComment = beforeComment + "@param" + " " + parName + "\n";
+
 				}
 			}
-		// if return type of the method is void then append only "return"  in the comment section else append along with its returntype
-		if(returnType.equals("void")){ 
-			beforeComment = beforeComment  + "\n" + "**/";			
+			// if return type of the method is void then append only "return" in
+			// the comment section else append along with its returntype
 		}
-		else{
-			beforeComment = beforeComment  + "return" +  "\n" + "**/";
+		if (returnType.equals("void")) {
+			beforeComment = beforeComment + "\n" + "*/\n";
+		} else {
+			beforeComment = beforeComment + "@return" + "\n" + "*/ \n";
 		}
-		}
-		
+
 	}
-	
+
 	public String createMethod() {// to create the result method which has to be
 									// appended //public final int count() {
 
-		
 		annotation = (annotation == "none") ? "" : "@" + annotation + "\n";
 		accessSpecifier = (accessSpecifier == "default") ? "" : accessSpecifier + " ";
 		accessModifier = (accessModifier == "default") ? "" : accessModifier + " ";
@@ -142,7 +143,7 @@ public class FileInfo {
 			parType = map.get(KEY_TYPE);
 			if (parName != null && parType != null) {
 				resultMethod = resultMethod + parType + " " + parName;
-				
+
 			}
 		}
 		if (list != null) {
@@ -175,7 +176,7 @@ public class FileInfo {
 			if (isReturnTypeCustom == true)
 				customReturnType = getReturnType();
 			BufferedWriter out = new BufferedWriter(
-					new FileWriter("C:\\Users\\I320234\\Desktop\\Customtypes.txt", true));
+					new FileWriter("C:\\Users\\I323305\\Desktop\\Customtypes.txt", true));
 			out.write("\r\n" + customReturnType);
 			// out.newLine();
 			out.close();
