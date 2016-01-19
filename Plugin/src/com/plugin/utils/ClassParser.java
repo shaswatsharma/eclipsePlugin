@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import com.plugin.data.ClassVariableDetails;
 import com.plugin.data.MethodDetails;
 import com.plugin.data.ParameterDetails;
 
@@ -20,6 +21,7 @@ public class ClassParser {
 	private String filename, line, className;
 
 	private ArrayList<MethodDetails> list;
+	private ArrayList<ClassVariableDetails> varList;
 
 	public ClassParser(String path) {
 		filename = path;
@@ -31,6 +33,7 @@ public class ClassParser {
 		try {
 			String body = new String();
 			list = new ArrayList<MethodDetails>();
+			varList=new ArrayList<ClassVariableDetails>();
 			MethodDetails methodDetails = new MethodDetails();
 			lr = new LineNumberReader(new FileReader(filename));
 			boolean flag = true;
@@ -53,22 +56,80 @@ public class ClassParser {
 					System.out.println("In line no" + lr.getLineNumber() + " class begins");
 					count = 0;
 				}
+				
+				
 
-				if (line.contains(" final ") && line.contains(" = ") && !line.contains("//") && flag) {
-					StringTokenizer str = new StringTokenizer(line);
-					String prev = null;
-					String current = null;
-					while (str.hasMoreTokens()) {
-						prev = current;
-						current = str.nextToken();
-
-						
-						if (current.equals("=")) {
-							break;
-						}
+//				if (line.contains(" final ") && line.contains(" = ") && !line.contains("//") && flag) {
+//					StringTokenizer str = new StringTokenizer(line);
+//					String prev = null;
+//					String current = null;
+//					while (str.hasMoreTokens()) {
+//						prev = current;
+//						current = str.nextToken();
+//
+//						
+//						if (current.equals("=")) {
+//							break;
+//						}
+//					}
+//					
+//				}
+				 
+				if(count==0){
+					String resultValue,temp;
+					boolean val;
+					ClassVariableDetails varDetails=new ClassVariableDetails();
+					//check for "=" in the currentline 
+					if(line.contains("=")){
+						String[] varArray=line.split("=");
+						varDetails.setValue(varArray[1]);
+					   resultValue=varArray[1];
+					}else{
+						varDetails.setValue("");
+						resultValue=line;						
 					}
 					
+					//check for accessSpecifier in the currentLine
+					if((resultValue.contains("private")? true: false)){
+						varDetails.setSpecifier("private");
+					}
+					else  if((resultValue.contains("public")? true: false)){
+						varDetails.setSpecifier("public");
+					}
+					else 
+						varDetails.setSpecifier("");
+					
+					//check for accessModifier in the currentline
+					if(resultValue.contains("final")?true:false){
+						varDetails.setModifier("final");
+					}
+					else if(resultValue.contains("static")?true:false){
+						varDetails.setModifier("static");
+					}
+					else
+						varDetails.setModifier("");		
+					
+					StringTokenizer str=new StringTokenizer(resultValue);
+					while(str.hasMoreTokens()){
+						temp=str.nextToken();
+						if(!temp.equals("private")|| !temp.equals("public")|| !temp.equals("protected") || !temp.equals("final") || temp.equals("static")){
+							if(varDetails.getType()==null){
+								varDetails.setType(temp);
+								continue;
+							}
+							if(varDetails.getName()==null){
+								varDetails.setName(temp);
+							}
+							
+						}
+					}
+					varList.add(varDetails);
+					}
+				
+				   
+					
 				}
+			
 
 				if (bodyflag) {
 					if (body == null)
@@ -126,11 +187,21 @@ public class ClassParser {
 					parseRightPart(parts[1], md);
 
 				}
+	      	
 			}
-		} catch (Exception e) {
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+	
+//	private void parserForEquals(String line){
+//		if(line.contains("=")){
+//		 String[] varArray=line.split("=");
+//		}
+//		else{
+//			
+//		}
+//	}
 
 	// method used to obtain all the details stored in the map.
 	private void printlinenumbers() {
