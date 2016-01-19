@@ -14,7 +14,7 @@ public class ClassParser {
 	private int count;
 	private LineNumberReader lr;
 	private static ClassParser methodfile;
-	private String filename, line;
+	private String filename, line, className;
 
 	private ArrayList<MethodDetails> list;
 	
@@ -41,8 +41,31 @@ public class ClassParser {
 				// initialize count=0 wen u find " class " for the first
 				// time..Indicates beginning of class
 				if (line.contains(" class ") && !line.contains("//") && flag && !line.contains("\" class \"")) {
+					StringTokenizer str = new StringTokenizer(line);
+					while (str.hasMoreTokens()) {
+						if ((str.nextToken()).equals("class")) {
+							break;
+						}
+					}
+					this.className = str.nextToken();
+
 					System.out.println("In line no" + lr.getLineNumber() + " class begins");
 					count = 0;
+				}
+
+				if (line.contains(" final ") && line.contains(" = ") && !line.contains("//") && flag) {
+					StringTokenizer str = new StringTokenizer(line);
+					String prev = null;
+					String current = null;
+					while (str.hasMoreTokens()) {
+						prev = current;
+						current = str.nextToken();
+
+						if (current.equals("=")) {
+							break;
+						}
+					}
+					
 				}
 
 				if (bodyflag) {
@@ -117,10 +140,12 @@ public class ClassParser {
 			methodDetails = list.get(i);
 			System.out.println("Starting Index : " + methodDetails.getStartingIndex() + "\nEnd Index : "
 					+ methodDetails.getEndingIndex() + "\nAccess Specifier : " + methodDetails.getSpecifier()
-					+ "\nAcess Modifier : " + methodDetails.getModifier() + "\nMethod Name : " + methodDetails.getName()
+					+ "\nAcess Modifier : " + methodDetails.getModifier() + "\nReturn Type : "
+					+ methodDetails.getReturnType() + "\nMethod Name : " + methodDetails.getName()
 					+ "\nMethod Exception : " + methodDetails.getException() + "\nMethod Body : "
 					+ methodDetails.getBody());
 			ParameterDetails parameterDetails = methodDetails.getParameters();
+			if(parameterDetails!=null) {
 			System.out.println("\n Parameter Type 1 : " + parameterDetails.getParameterType1()
 					+ "\n Parameter Name 1 : " + parameterDetails.getParameterName1() + "\n Parameter Type 2 : "
 					+ parameterDetails.getParameterType2() + "\n Parameter Name 2 : "
@@ -131,6 +156,7 @@ public class ClassParser {
 					+ parameterDetails.getParameterName4() + "\n Parameter Type 5 : "
 					+ parameterDetails.getParameterType5() + "\n Parameter Name 5 : "
 					+ parameterDetails.getParameterName5());
+			}
 
 			// System.out.println("starting index: " +
 			// Integer.valueOf(map.get(StartIndex)) + " ending index :"
@@ -206,7 +232,7 @@ public class ClassParser {
 				if (value == true)
 					continue;
 
-				if (methodDetails.getReturnType() == null) {
+				if (methodDetails.getReturnType() == null && !leftSubString.contains(className)) {
 					methodDetails.setReturnType(temp);
 					continue;
 				}

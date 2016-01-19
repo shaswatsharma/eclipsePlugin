@@ -1,5 +1,7 @@
 package com.plugin.data;
 
+import java.util.List;
+
 public class MethodDetails {
 	private String returnType;
 	private String name;
