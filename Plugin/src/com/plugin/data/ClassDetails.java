@@ -7,6 +7,7 @@ public class ClassDetails {
 	private List<ClassVariableDetails> variables;
 	private String className;
 
+	
 	public List<MethodDetails> getMethods() {
 		return methods;
 	}

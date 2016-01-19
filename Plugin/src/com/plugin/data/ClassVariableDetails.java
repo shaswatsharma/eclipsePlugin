@@ -27,6 +27,7 @@ public class ClassVariableDetails {
 		return modifier;
 	}
 
+	
 	public void setModifier(String modifier) {
 		this.modifier = modifier;
 	}

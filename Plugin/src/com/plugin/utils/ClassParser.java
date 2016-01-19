@@ -62,6 +62,7 @@ public class ClassParser {
 						prev = current;
 						current = str.nextToken();
 
+						
 						if (current.equals("=")) {
 							break;
 						}
