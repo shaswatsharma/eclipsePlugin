@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import com.plugin.data.MethodDetails;
+
 public class MethodParser {
 	
 	String filePath;
-	HashMap<String, String> map;
+	MethodDetails methodDetails;
 	
-	private final String StartIndex = "start";
+	/*private final String StartIndex = "start";
 	private final String EndIndex = "end";
 	private final String accessSpecifier = "specifier";
 	private final String accessmodifier = "modifier";
@@ -26,7 +28,7 @@ public class MethodParser {
 	private final String parameterType4 = "type4";
 	private final String parameterType5 = "type5";
 	private final String exceptionThrown = "exception";
-	private final String methodBody = "methodbody";
+	private final String methodBody = "methodbody";*/
 
 
 /*	public static void main(String[] args) {
@@ -39,11 +41,11 @@ public class MethodParser {
 	/*
 	 * 
 	 */
-	public void generateJUnitMethod(HashMap<String, String> map, String filePath) {
+	public void generateJUnitMethod(MethodDetails methodDetails, String filePath) {
 		this.filePath = filePath;
-		this.map = map;
+		this.methodDetails = methodDetails;
 		ArrayList<String> condition = new ArrayList<>();
-		Scanner scanner = new Scanner(map.get(methodBody));
+		Scanner scanner = new Scanner(methodDetails.getBody());
 		boolean comment = false;
 		boolean switchCase = false;
 		while (scanner.hasNextLine()) {
@@ -135,8 +137,8 @@ public class MethodParser {
 	}
 
 	private void createMethod(String condition, int i) {
-		String comment = "This is a Auto Generated JUnit test case for \""+map.get(methodName)+"\" method for \"" + condition + "\" keyword used.";
-		String name = map.get(methodName) + "Test" + i + condition;
+		String comment = "This is a Auto Generated JUnit test case for \""+methodDetails.getName()+"\" method for \"" + condition + "\" keyword used.";
+		String name = methodDetails.getName() + "Test" + i + condition;
 		FileInfo fileInfo = new FileInfo();
 		fileInfo.setAccessModifier("public");
 		fileInfo.setAccessSpecifier("");

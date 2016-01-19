@@ -1,10 +1,10 @@
 package com.plugin.main;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
+import com.plugin.data.MethodDetails;
+import com.plugin.utils.ClassParser;
 import com.plugin.utils.FileCreation;
-import com.plugin.utils.FindMethodsFile;
 import com.plugin.utils.MethodParser;
 
 public class ClassValidator {
@@ -29,8 +29,8 @@ public class ClassValidator {
 		String exceptionThrown = "exception";
 		String methodBody = "methodbody";
 
-		FindMethodsFile findMethodsFile = new FindMethodsFile("C:\\Users\\I323305\\Desktop\\FileInfo.java");
-		ArrayList<HashMap<String, String>> list = findMethodsFile.getAllMethodDetails();
+		ClassParser findMethodsFile = new ClassParser("C:\\Users\\I323305\\Desktop\\FileInfo.java");
+		ArrayList<MethodDetails> list = findMethodsFile.getAllMethodDetails();
 
 		System.out.println("Number of methods are " + list.size());
 
@@ -44,10 +44,10 @@ public class ClassValidator {
 		// Creating JUnitMethods
 		int i = 0;
 		while (i < list.size()) {
-			HashMap<String, String> map = list.get(i);
+			MethodDetails methodDetails = list.get(i);
 
 			MethodParser methodParser = new MethodParser();
-			methodParser.generateJUnitMethod(map, "C:\\Users\\I323305\\Desktop\\FileInfoTest.java");
+			methodParser.generateJUnitMethod(methodDetails, "C:\\Users\\I323305\\Desktop\\FileInfoTest.java");
 
 			i++;
 			/*

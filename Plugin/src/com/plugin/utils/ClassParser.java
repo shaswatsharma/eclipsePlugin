@@ -4,13 +4,10 @@ import java.io.FileReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.StringTokenizer;
 
 import com.plugin.data.MethodDetails;
 import com.plugin.data.ParameterDetails;
-
-import java.io.*;
 
 public class ClassParser {
 
@@ -20,6 +17,7 @@ public class ClassParser {
 	private String filename, line;
 
 	private ArrayList<MethodDetails> list;
+	
 
 	public ClassParser(String path) {
 		filename = path;
@@ -27,6 +25,7 @@ public class ClassParser {
 		printlinenumbers();
 	}
 
+	
 	private void readLines() {
 		try {
 			String body = new String();
@@ -82,11 +81,12 @@ public class ClassParser {
 						list.add(methodDetails);
 					}
 				}
-				
+
 				/*
-				 * For first "{" inside class 
+				 * For first "{" inside class
 				 */
-				if (line.contains("{") && (!line.contains(" class ")) && count == 0 && !line.contains("//") && flag) {
+				if (line.contains("{") && (!line.contains("=")) && (!line.contains(" class ")) && count == 0
+						&& !line.contains("//") && flag) {
 
 					MethodDetails md = new MethodDetails();
 					md.setStartingIndex(String.valueOf(lr.getLineNumber()));
@@ -97,7 +97,7 @@ public class ClassParser {
 					}
 					// String[] parts;
 					String[] parts = splitByThrows(line, md);
-				
+
 					parseLeftpart(parts[0], md);
 					parseRightPart(parts[1], md);
 
@@ -251,7 +251,7 @@ public class ClassParser {
 				// split it using "," and get Strings of the form "parameterType
 				// parameterValue"
 				String[] secondHalf = rightSubString.split("\\,");
-				
+
 				for (String param : secondHalf) {
 					// Now split these strings using " " and obtain
 					// parameterType and parameterValue separately
