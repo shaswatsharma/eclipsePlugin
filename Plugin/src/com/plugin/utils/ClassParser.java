@@ -47,7 +47,7 @@ public class ClassParser {
 			while ((line = lr.readLine()) != null) {
 
 				// initialize count=0 wen u find " class " for the first
-				// time..Indicates beginning of class
+				// time..Indicates beginning of class.set insideClass flag to true
 				if (line.contains(" class ") && !line.contains("//") && flag && !line.contains("\" class \"")) {
 					StringTokenizer str = new StringTokenizer(line);
 					while (str.hasMoreTokens()) {
@@ -63,28 +63,11 @@ public class ClassParser {
 					continue;
 				}
 
-				// if (line.contains(" final ") && line.contains(" = ") &&
-				// !line.contains("//") && flag) {
-				// StringTokenizer str = new StringTokenizer(line);
-				// String prev = null;
-				// String current = null;
-				// while (str.hasMoreTokens()) {
-				// prev = current;
-				// current = str.nextToken();
-				//
-				//
-				// if (current.equals("=")) {
-				// break;
-				// }
-				// }
-				//
-				// }
-
 				if (bodyflag && insideClass) {
 					body = body + "\n";
 					body = body + line;
 				}
-
+                //checking for comment section.For Beginning of comment set flag as false and for end of comment set flag as true.
 				if (line.contains("/*")) {
 					flag = false;
 				}
@@ -93,7 +76,7 @@ public class ClassParser {
 					flag = true;
 					continue;
 				}
-
+                //checking inside loops present inside a method
 				if (line.contains("{") && count != 0 && !line.contains("//") && flag && insideClass) {
 					count++;
 				}
@@ -116,7 +99,7 @@ public class ClassParser {
 				}
 
 				/*
-				 * For first "{" inside class
+				 * Wen a method declaration inside class is encountered, parse it 
 				 */
 				if (line.contains("{") && (!line.contains(" class ")) && count == 0 && flag && !line.contains("//")
 						&& flag && insideClass) {
@@ -135,18 +118,21 @@ public class ClassParser {
 					parseRightPart(parts[1], md);
 
 				}
-
+                //this section deals with the global variables declared at the beginning of class
 				if ((count == 0) && insideClass && flag && !line.contains("//") && !line.trim().isEmpty()
 						&& (!line.contains("(") || line.contains("="))) {
 					String resultValue, temp;
 					boolean val;
 					ClassVariableDetails varDetails = new ClassVariableDetails();
-					// check for "=" in the currentline
+					// check for "=" in the currentline(Only for static and final variables). If present split the line using it.
+					//The first substring will contain variable declaration and second substring will contain value assigned to it.
 					if (line.contains("=")) {
 						String[] varArray = line.split("=");
 						varDetails.setValue(varArray[1]);
 						resultValue = varArray[0];
-					} else {
+					} 
+					//if their is no "=" symbol then set "" value 
+					else {
 						varDetails.setValue("");
 						resultValue = line;
 					}
@@ -167,6 +153,7 @@ public class ClassParser {
 					} else
 						varDetails.setModifier("");
 
+					//get the type and name of variable, by tokenizing the current line
 					StringTokenizer str = new StringTokenizer(resultValue);
 					while (str.hasMoreTokens()) {
 						temp = str.nextToken();
@@ -185,6 +172,7 @@ public class ClassParser {
 					variableList.add(varDetails);
 				}
 			}
+			//set the differnt lists in the ClassDetails pojo class
 			classDetails.setMethods(methodList);
 			classDetails.setClassName(className);
 			classDetails.setVariables(variableList);
@@ -193,15 +181,6 @@ public class ClassParser {
 			e.printStackTrace();
 		}
 	}
-
-	// private void parserForEquals(String line){
-	// if(line.contains("=")){
-	// String[] varArray=line.split("=");
-	// }
-	// else{
-	//
-	// }
-	// }
 
 	// method used to obtain all the details stored in the map.
 	private void printlinenumbers() {
@@ -232,6 +211,8 @@ public class ClassParser {
 			}
 			i++;
 		}
+		
+		//print the variable details 
 		System.out.println(classDetails.getClassName() + "  Hello");
 		List<ClassVariableDetails> varList = classDetails.getVariables();
 		if (varList != null) {
@@ -275,13 +256,14 @@ public class ClassParser {
 				boolean value = false;
 				String temp = null;
 				switch (temp = str.nextToken()) {
+				//check for accessSpecifiers
 				case "public":
 				case "private":
 				case "protected":
 					methodDetails.setSpecifier(temp);
 					value = true;
 					break;
-
+                //check for accessModifiers
 				case "static":
 				case "final":
 				case "synchronized":
