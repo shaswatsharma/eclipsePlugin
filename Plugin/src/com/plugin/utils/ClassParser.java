@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import com.plugin.data.ClassDetails;
 import com.plugin.data.ClassVariableDetails;
 import com.plugin.data.MethodDetails;
 import com.plugin.data.ParameterDetails;
@@ -19,9 +20,10 @@ public class ClassParser {
 	private LineNumberReader lr;
 	private static ClassParser methodfile;
 	private String filename, line, className;
+	private ClassDetails classDetails;
 
-	private ArrayList<MethodDetails> list;
-	private ArrayList<ClassVariableDetails> varList;
+	private ArrayList<MethodDetails> methodList;
+	private ArrayList<ClassVariableDetails> variableList;
 
 	public ClassParser(String path) {
 		filename = path;
@@ -32,12 +34,14 @@ public class ClassParser {
 	private void readLines() {
 		try {
 			String body = new String();
-			list = new ArrayList<MethodDetails>();
-			varList=new ArrayList<ClassVariableDetails>();
+			classDetails = new ClassDetails();
+			methodList = new ArrayList<MethodDetails>();
+			variableList = new ArrayList<ClassVariableDetails>();
 			MethodDetails methodDetails = new MethodDetails();
 			lr = new LineNumberReader(new FileReader(filename));
 			boolean flag = true;
 			boolean bodyflag = false;
+			boolean insideClass = false;
 
 			// traverse until the end of the file
 			while ((line = lr.readLine()) != null) {
@@ -55,89 +59,30 @@ public class ClassParser {
 
 					System.out.println("In line no" + lr.getLineNumber() + " class begins");
 					count = 0;
+					insideClass = true;
+					continue;
 				}
-				
-				
 
-//				if (line.contains(" final ") && line.contains(" = ") && !line.contains("//") && flag) {
-//					StringTokenizer str = new StringTokenizer(line);
-//					String prev = null;
-//					String current = null;
-//					while (str.hasMoreTokens()) {
-//						prev = current;
-//						current = str.nextToken();
-//
-//						
-//						if (current.equals("=")) {
-//							break;
-//						}
-//					}
-//					
-//				}
-				 
-				if(count==0){
-					String resultValue,temp;
-					boolean val;
-					ClassVariableDetails varDetails=new ClassVariableDetails();
-					//check for "=" in the currentline 
-					if(line.contains("=")){
-						String[] varArray=line.split("=");
-						varDetails.setValue(varArray[1]);
-					   resultValue=varArray[1];
-					}else{
-						varDetails.setValue("");
-						resultValue=line;						
-					}
-					
-					//check for accessSpecifier in the currentLine
-					if((resultValue.contains("private")? true: false)){
-						varDetails.setSpecifier("private");
-					}
-					else  if((resultValue.contains("public")? true: false)){
-						varDetails.setSpecifier("public");
-					}
-					else 
-						varDetails.setSpecifier("");
-					
-					//check for accessModifier in the currentline
-					if(resultValue.contains("final")?true:false){
-						varDetails.setModifier("final");
-					}
-					else if(resultValue.contains("static")?true:false){
-						varDetails.setModifier("static");
-					}
-					else
-						varDetails.setModifier("");		
-					
-					StringTokenizer str=new StringTokenizer(resultValue);
-					while(str.hasMoreTokens()){
-						temp=str.nextToken();
-						if(!temp.equals("private")|| !temp.equals("public")|| !temp.equals("protected") || !temp.equals("final") || temp.equals("static")){
-							if(varDetails.getType()==null){
-								varDetails.setType(temp);
-								continue;
-							}
-							if(varDetails.getName()==null){
-								varDetails.setName(temp);
-							}
-							
-						}
-					}
-					varList.add(varDetails);
-					}
-				
-				   
-					
-				}
-			
+				// if (line.contains(" final ") && line.contains(" = ") &&
+				// !line.contains("//") && flag) {
+				// StringTokenizer str = new StringTokenizer(line);
+				// String prev = null;
+				// String current = null;
+				// while (str.hasMoreTokens()) {
+				// prev = current;
+				// current = str.nextToken();
+				//
+				//
+				// if (current.equals("=")) {
+				// break;
+				// }
+				// }
+				//
+				// }
 
-				if (bodyflag) {
-					if (body == null)
-						body = line;
-					else {
-						body = body + "\n";
-						body = body + line;
-					}
+				if (bodyflag && insideClass) {
+					body = body + "\n";
+					body = body + line;
 				}
 
 				if (line.contains("/*")) {
@@ -146,12 +91,13 @@ public class ClassParser {
 
 				if (line.contains("*/")) {
 					flag = true;
+					continue;
 				}
 
-				if (line.contains("{") && count != 0 && !line.contains("//") && flag) {
+				if (line.contains("{") && count != 0 && !line.contains("//") && flag && insideClass) {
 					count++;
 				}
-				if (line.contains("}") && count != 0 && !line.contains("//") && flag) {
+				if (line.contains("}") && !line.contains("//") && flag && insideClass) {
 					count--;
 					// if count becomes "0" then that will mark the end of the
 					// method, so add the current_line_number,and the body of
@@ -164,14 +110,16 @@ public class ClassParser {
 						methodDetails.setBody(body);
 						body = null;
 						bodyflag = false;
-						list.add(methodDetails);
+						methodList.add(methodDetails);
 					}
+                    continue;
 				}
 
 				/*
 				 * For first "{" inside class
 				 */
-				if (line.contains("{") && (!line.contains(" class ")) && count == 0 && !line.contains("//") && flag) {
+				if (line.contains("{") && (!line.contains(" class ")) && count == 0 && flag && !line.contains("//")
+						&& flag && insideClass) {
 
 					MethodDetails md = new MethodDetails();
 					md.setStartingIndex(String.valueOf(lr.getLineNumber()));
@@ -187,29 +135,82 @@ public class ClassParser {
 					parseRightPart(parts[1], md);
 
 				}
-	      	
+
+				if ((count == 0) && insideClass && flag && !line.contains("//") && !line.trim().isEmpty()
+						&& (!line.contains("(") || line.contains("="))) {
+					String resultValue, temp;
+					boolean val;
+					ClassVariableDetails varDetails = new ClassVariableDetails();
+					// check for "=" in the currentline
+					if (line.contains("=")) {
+						String[] varArray = line.split("=");
+						varDetails.setValue(varArray[1]);
+						resultValue = varArray[0];
+					} else {
+						varDetails.setValue("");
+						resultValue = line;
+					}
+
+					// check for accessSpecifier in the currentLine
+					if ((resultValue.contains("private") ? true : false)) {
+						varDetails.setSpecifier("private");
+					} else if ((resultValue.contains("public") ? true : false)) {
+						varDetails.setSpecifier("public");
+					} else
+						varDetails.setSpecifier("");
+
+					// check for accessModifier in the currentline
+					if (resultValue.contains("final") ? true : false) {
+						varDetails.setModifier("final");
+					} else if (resultValue.contains("static") ? true : false) {
+						varDetails.setModifier("static");
+					} else
+						varDetails.setModifier("");
+
+					StringTokenizer str = new StringTokenizer(resultValue);
+					while (str.hasMoreTokens()) {
+						temp = str.nextToken();
+						if (!temp.equals("private") && !temp.equals("public") && !temp.equals("protected")
+								&& !temp.equals("final") && !temp.equals("static")) {
+							if (varDetails.getType() == null) {
+								varDetails.setType(temp);
+								continue;
+							}
+							if (varDetails.getName() == null) {
+								varDetails.setName(temp);
+							}
+
+						}
+					}
+					variableList.add(varDetails);
+				}
 			}
-		catch (Exception e) {
+			classDetails.setMethods(methodList);
+			classDetails.setClassName(className);
+			classDetails.setVariables(variableList);
+
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-//	private void parserForEquals(String line){
-//		if(line.contains("=")){
-//		 String[] varArray=line.split("=");
-//		}
-//		else{
-//			
-//		}
-//	}
+
+	// private void parserForEquals(String line){
+	// if(line.contains("=")){
+	// String[] varArray=line.split("=");
+	// }
+	// else{
+	//
+	// }
+	// }
 
 	// method used to obtain all the details stored in the map.
 	private void printlinenumbers() {
 		int i = 0;
+		// List<MethodDetails> methodList = classDetails.getMethods();
 		MethodDetails methodDetails;
-		System.out.println(list.size());
-		while (i < list.size()) {
-			methodDetails = list.get(i);
+		System.out.println(methodList.size());
+		while (i < methodList.size()) {
+			methodDetails = methodList.get(i);
 			System.out.println("Starting Index : " + methodDetails.getStartingIndex() + "\nEnd Index : "
 					+ methodDetails.getEndingIndex() + "\nAccess Specifier : " + methodDetails.getSpecifier()
 					+ "\nAcess Modifier : " + methodDetails.getModifier() + "\nReturn Type : "
@@ -217,39 +218,30 @@ public class ClassParser {
 					+ "\nMethod Exception : " + methodDetails.getException() + "\nMethod Body : "
 					+ methodDetails.getBody());
 			ParameterDetails parameterDetails = methodDetails.getParameters();
-			if(parameterDetails!=null) {
-			System.out.println("\n Parameter Type 1 : " + parameterDetails.getParameterType1()
-					+ "\n Parameter Name 1 : " + parameterDetails.getParameterName1() + "\n Parameter Type 2 : "
-					+ parameterDetails.getParameterType2() + "\n Parameter Name 2 : "
-					+ parameterDetails.getParameterName2() + "\n Parameter Type 3 : "
-					+ parameterDetails.getParameterType3() + "\n Parameter Name 3 : "
-					+ parameterDetails.getParameterName3() + "\n Parameter Type 4 : "
-					+ parameterDetails.getParameterType4() + "\n Parameter Name 4 : "
-					+ parameterDetails.getParameterName4() + "\n Parameter Type 5 : "
-					+ parameterDetails.getParameterType5() + "\n Parameter Name 5 : "
-					+ parameterDetails.getParameterName5());
+			if (parameterDetails != null) {
+				System.out.println("\n Parameter Type 1 : " + parameterDetails.getParameterType1()
+						+ "\n Parameter Name 1 : " + parameterDetails.getParameterName1() + "\n Parameter Type 2 : "
+						+ parameterDetails.getParameterType2() + "\n Parameter Name 2 : "
+						+ parameterDetails.getParameterName2() + "\n Parameter Type 3 : "
+						+ parameterDetails.getParameterType3() + "\n Parameter Name 3 : "
+						+ parameterDetails.getParameterName3() + "\n Parameter Type 4 : "
+						+ parameterDetails.getParameterType4() + "\n Parameter Name 4 : "
+						+ parameterDetails.getParameterName4() + "\n Parameter Type 5 : "
+						+ parameterDetails.getParameterType5() + "\n Parameter Name 5 : "
+						+ parameterDetails.getParameterName5());
 			}
-
-			// System.out.println("starting index: " +
-			// Integer.valueOf(map.get(StartIndex)) + " ending index :"
-			// + Integer.valueOf(map.get(EndIndex)) + " accessSpecifier=" +
-			// map.get(accessSpecifier)
-			// + " accessmodifier=" + map.get(accessmodifier) + " returnType=" +
-			// map.get(returnType)
-			// + " methodName=" + map.get(methodName) + "\n firstParameterType="
-			// + map.get(parameterType1)
-			// + " firstParameter=" + map.get(parameter1) + "\n
-			// secondParameterType=" + map.get(parameterType2)
-			// + " secondParameter=" + map.get(parameter2) + "\n
-			// thirdParameterType=" + map.get(parameterType3)
-			// + " thirdParameter=" + map.get(parameter3) + "\n
-			// fourthParameterType=" + map.get(parameterType4)
-			// + " fourthParameter=" + map.get(parameter4) + "\n
-			// fifthParameterType=" + map.get(parameterType5)
-			// + " fifthParameter=" + map.get(parameter5) + "\n
-			// ExceptionThrown=" + map.get(exceptionThrown)
-			// + "\n methodBody=" + map.get(methodBody));
 			i++;
+		}
+		System.out.println(classDetails.getClassName() + "  Hello");
+		List<ClassVariableDetails> varList = classDetails.getVariables();
+		if (varList != null) {
+			for (i = 0; i < varList.size(); i++) {
+				ClassVariableDetails cvd = varList.get(i);
+				System.out.println("Access Specifier : " + cvd.getSpecifier() + "\nAccess Modifier : "
+						+ cvd.getModifier() + "\nDataType : " + cvd.getType() + "\nVariable Name : " + cvd.getName()
+						+ "\nValue : " + cvd.getValue());
+				System.out.println(" ");
+			}
 		}
 	}
 
@@ -267,7 +259,7 @@ public class ClassParser {
 			methodDetails.setException(throwsSplit[1].replaceAll("[^a-zA-Z0-9]", ""));
 		}
 		// And if their is no "throws" keyword, then split the line using "(" to
-		// seperate the paremeter_section and method_name section
+		// separate the paremeter_section and method_name section
 		else {
 			parts = line.split("\\(");
 		}
@@ -420,6 +412,10 @@ public class ClassParser {
 	}
 
 	public ArrayList<MethodDetails> getAllMethodDetails() {
-		return list;
+		return methodList;
+	}
+
+	public ClassDetails getClassDetails() {
+		return classDetails;
 	}
 }
