@@ -6,7 +6,7 @@ public class ClassVariableDetails {
 	private String modifier;
 	private String specifier;
 	private String value;
-
+ 
 	public String getName() {
 		return name;
 	}

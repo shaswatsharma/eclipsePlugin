@@ -6,7 +6,7 @@ public class ClassDetails {
 	private List<MethodDetails> methods;
 	private List<ClassVariableDetails> variables;
 	private String className;
-
+ 
 	
 	public List<MethodDetails> getMethods() {
 		return methods;
