@@ -40,15 +40,17 @@ public class ClassParser {
 			MethodDetails methodDetails = new MethodDetails();
 			lr = new LineNumberReader(new FileReader(filename));
 			boolean flag = true;
+			boolean mflag=false;
 			boolean bodyflag = false;
 			boolean insideClass = false;
+			String previous=new String();
 
 			// traverse until the end of the file
 			while ((line = lr.readLine()) != null) {
 
 				// initialize count=0 wen u find " class " for the first
 				// time..Indicates beginning of class.set insideClass flag to true
-				if (line.contains(" class ") && !line.contains("//") && flag && !line.contains("\" class \"")) {
+				if (line.contains(" class ") && !line.contains("//") && flag && !line.contains("\" class \"") && !mflag) {
 					StringTokenizer str = new StringTokenizer(line);
 					while (str.hasMoreTokens()) {
 						if ((str.nextToken()).equals("class")) {
@@ -80,7 +82,7 @@ public class ClassParser {
 				if (line.contains("{") && count != 0 && !line.contains("//") && flag && insideClass) {
 					count++;
 				}
-				if (line.contains("}") && !line.contains("//") && flag && insideClass) {
+				if (line.contains("}") && !line.contains("//") && flag && insideClass && !mflag) {
 					count--;
 					// if count becomes "0" then that will mark the end of the
 					// method, so add the current_line_number,and the body of
@@ -101,9 +103,21 @@ public class ClassParser {
 				/*
 				 * Wen a method declaration inside class is encountered, parse it 
 				 */
-				if (line.contains("{") && (!line.contains(" class ")) && count == 0 && flag && !line.contains("//")
-						&& flag && insideClass) {
-
+				
+				if(line.contains("(") && !line.contains(")") && (!line.contains(" class ")) && count == 0 && flag && !line.contains("//") && insideClass ){
+					mflag=true;
+					previous+=line;
+					continue;
+				}
+				
+				
+				if(line.contains(")") && line.contains("{") && mflag && count==0 && flag && !line.contains("//") && insideClass && (!line.contains(" class "))){
+					mflag=false;
+					line=previous+line;
+				}
+				
+				if (line.contains("{") && (!line.contains(" class ")) && count == 0 && flag && !line.contains("//") && insideClass && !mflag) {
+                    String prev=new String();
 					MethodDetails md = new MethodDetails();
 					md.setStartingIndex(String.valueOf(lr.getLineNumber()));
 					methodDetails = md;
@@ -120,7 +134,7 @@ public class ClassParser {
 				}
                 //this section deals with the global variables declared at the beginning of class
 				if ((count == 0) && insideClass && flag && !line.contains("//") && !line.trim().isEmpty()
-						&& (!line.contains("(") || line.contains("="))) {
+						&& (!line.contains("(") || line.contains("=")) && !mflag) {
 					String resultValue, temp;
 					boolean val;
 					ClassVariableDetails varDetails = new ClassVariableDetails();
@@ -154,15 +168,26 @@ public class ClassParser {
 						varDetails.setModifier("");
 
 					//get the type and name of variable, by tokenizing the current line
+					String prev=new String();
 					StringTokenizer str = new StringTokenizer(resultValue);
 					while (str.hasMoreTokens()) {
 						temp = str.nextToken();
 						if (!temp.equals("private") && !temp.equals("public") && !temp.equals("protected")
 								&& !temp.equals("final") && !temp.equals("static")) {
+			                //Below 2 cases checks if returnType is of Type "Map<String, String>"
+							if(temp.contains("<")&& !temp.contains(">")){
+								prev=temp;
+								continue;
+							}
+							if(temp.contains(">")){
+								temp=prev+" "+temp;
+							}
+							//if type of method is not set, then set it
 							if (varDetails.getType() == null) {
 								varDetails.setType(temp);
 								continue;
 							}
+							//if name of the method is not set, then set it
 							if (varDetails.getName() == null) {
 								varDetails.setName(temp);
 							}
@@ -251,7 +276,7 @@ public class ClassParser {
 		StringTokenizer str;
 		if (leftSubString != null) {
 			str = new StringTokenizer(leftSubString);
-
+            String prev=new String();
 			while (str.hasMoreTokens()) {
 				boolean value = false;
 				String temp = null;
@@ -277,15 +302,21 @@ public class ClassParser {
 				}
 				if (value == true)
 					continue;
-
+                //Below 2 cases checks if returnType is of Type "Map<String, String>"
+				if(temp.contains("<") && !temp.contains(">")){
+					prev=temp;
+					continue;
+				}
+				if(temp.contains(">")){
+					temp=prev+" "+temp;
+				}
 				if (methodDetails.getReturnType() == null && !leftSubString.contains(className)) {
 					methodDetails.setReturnType(temp);
 					continue;
 				}
 
 				if (methodDetails.getName() == null) {
-					methodDetails.setName(temp);
-					;
+					methodDetails.setName(temp);					
 					continue;
 				}
 
@@ -300,11 +331,16 @@ public class ClassParser {
 		if (rightSubString != null) {
 			// if this method has only one parameter, then retrive the
 			// parameterType and parameterName and store it in map
+			
 			if (!rightSubString.contains(",")) {
+												
 				str = new StringTokenizer(rightSubString);
-				String temp = null;
+				//String prev=new String();
 				while (str.hasMoreTokens()) {
-					temp = str.nextToken();
+					String temp =str.nextToken();
+					
+
+					
 					// retrieving the one and only parameterType
 					if (parameterDetails.getParameterType1() == null) {
 						parameterDetails.setParameterType1(temp.replaceAll("[^a-zA-Z0-9]", ""));
@@ -323,17 +359,31 @@ public class ClassParser {
 				// split it using "," and get Strings of the form "parameterType
 				// parameterValue"
 				String[] secondHalf = rightSubString.split("\\,");
-
+                String prev=new String();
 				for (String param : secondHalf) {
 					// Now split these strings using " " and obtain
 					// parameterType and parameterValue separately
+						
 					str = new StringTokenizer(param);
 					String temp = null;
 					while (str.hasMoreTokens()) {
 						temp = str.nextToken();
+						
+						//following 2 conditions che checks for types like "MAP<String, String> "
+						if(temp.contains("<") && !temp.contains(">")){
+							prev=temp;
+							continue;
+						}
+						if(temp.contains(">")){
+							temp=prev+" "+temp;
+						}
 						// for parameter1
 						if (parameterDetails.getParameterType1() == null) {
+							if(temp.contains("<") && temp.contains(">")){
+								parameterDetails.setParameterType1(temp);
+							}else{
 							parameterDetails.setParameterType1(temp.replaceAll("[^a-zA-Z0-9]", ""));
+							}
 							continue;
 						}
 
@@ -390,7 +440,7 @@ public class ClassParser {
 	}
 
 	public static void main(String[] args) {
-		methodfile = new ClassParser("C:\\Users\\I323334\\Desktop\\Validate.java");
+		methodfile = new ClassParser("C:\\Users\\I320234\\Desktop\\mainactivity.txt");
 	}
 
 	public ArrayList<MethodDetails> getAllMethodDetails() {
@@ -398,6 +448,9 @@ public class ClassParser {
 	}
 
 	public ClassDetails getClassDetails() {
+		List<MethodDetails> dup=classDetails.getMethods();
+		
+		System.out.println("SIZE OF LIST"+dup.size());
 		return classDetails;
 	}
 }
