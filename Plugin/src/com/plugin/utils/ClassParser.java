@@ -3,7 +3,6 @@ package com.plugin.utils;
 import java.io.FileReader;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -11,8 +10,6 @@ import com.plugin.data.ClassDetails;
 import com.plugin.data.ClassVariableDetails;
 import com.plugin.data.MethodDetails;
 import com.plugin.data.ParameterDetails;
-
-import java.io.*;
 
 public class ClassParser {
 
@@ -221,18 +218,12 @@ public class ClassParser {
 					+ methodDetails.getReturnType() + "\nMethod Name : " + methodDetails.getName()
 					+ "\nMethod Exception : " + methodDetails.getException() + "\nMethod Body : "
 					+ methodDetails.getBody());
-			ParameterDetails parameterDetails = methodDetails.getParameters();
-			if (parameterDetails != null) {
-				System.out.println("\n Parameter Type 1 : " + parameterDetails.getParameterType1()
-						+ "\n Parameter Name 1 : " + parameterDetails.getParameterName1() + "\n Parameter Type 2 : "
-						+ parameterDetails.getParameterType2() + "\n Parameter Name 2 : "
-						+ parameterDetails.getParameterName2() + "\n Parameter Type 3 : "
-						+ parameterDetails.getParameterType3() + "\n Parameter Name 3 : "
-						+ parameterDetails.getParameterName3() + "\n Parameter Type 4 : "
-						+ parameterDetails.getParameterType4() + "\n Parameter Name 4 : "
-						+ parameterDetails.getParameterName4() + "\n Parameter Type 5 : "
-						+ parameterDetails.getParameterType5() + "\n Parameter Name 5 : "
-						+ parameterDetails.getParameterName5());
+			List<ParameterDetails> parameters = methodDetails.getParameters();
+			if (parameters != null) {
+				for (int k = 0; k < parameters.size(); k++) {
+					System.out.println("\n Parameter Type : " + parameters.get(k).getParameterType()
+							+ "\n Parameter Name : " + parameters.get(k).getParameterName());
+				}
 			}
 			i++;
 		}
@@ -327,120 +318,65 @@ public class ClassParser {
 	private void parseRightPart(String rightSubString, MethodDetails methodDetails) {
 		StringTokenizer str;
 		// parsing the second part of the string
-		ParameterDetails parameterDetails = new ParameterDetails();
+		List<ParameterDetails> parameters = new ArrayList<ParameterDetails>();
+		ParameterDetails parameterDetails;
 		if (rightSubString != null) {
 			// if this method has only one parameter, then retrive the
 			// parameterType and parameterName and store it in map
-			
 			if (!rightSubString.contains(",")) {
-												
 				str = new StringTokenizer(rightSubString);
-				//String prev=new String();
+				String temp = null;
+				parameterDetails = new ParameterDetails();
 				while (str.hasMoreTokens()) {
-					String temp =str.nextToken();
-					
-
-					
+					temp = str.nextToken();
 					// retrieving the one and only parameterType
-					if (parameterDetails.getParameterType1() == null) {
-						parameterDetails.setParameterType1(temp.replaceAll("[^a-zA-Z0-9]", ""));
+					if (parameterDetails.getParameterType() == null) {
+						parameterDetails.setParameterType(temp.replaceAll("[^a-zA-Z0-9]", ""));
 						continue;
 					}
 					// retrieving the one and only parameter
-					if (parameterDetails.getParameterName1() == null) {
-						parameterDetails.setParameterName1(temp.replaceAll("[^a-zA-Z0-9]", ""));
+					if (parameterDetails.getParameterName() == null) {
+						parameterDetails.setParameterName(temp.replaceAll("[^a-zA-Z0-9]", ""));
 						continue;
 					}
 				}
-				methodDetails.setTotalParameters(1);
+				parameters.add(parameterDetails);
 			}
 			// if their are more than one parameters
 			else {
 				// split it using "," and get Strings of the form "parameterType
 				// parameterValue"
 				String[] secondHalf = rightSubString.split("\\,");
-                String prev=new String();
+
 				for (String param : secondHalf) {
 					// Now split these strings using " " and obtain
 					// parameterType and parameterValue separately
-						
 					str = new StringTokenizer(param);
 					String temp = null;
+					parameterDetails = new ParameterDetails();
+					// For multiple parameters
 					while (str.hasMoreTokens()) {
 						temp = str.nextToken();
-						
-						//following 2 conditions che checks for types like "MAP<String, String> "
-						if(temp.contains("<") && !temp.contains(">")){
-							prev=temp;
-							continue;
-						}
-						if(temp.contains(">")){
-							temp=prev+" "+temp;
-						}
-						// for parameter1
-						if (parameterDetails.getParameterType1() == null) {
-							if(temp.contains("<") && temp.contains(">")){
-								parameterDetails.setParameterType1(temp);
-							}else{
-							parameterDetails.setParameterType1(temp.replaceAll("[^a-zA-Z0-9]", ""));
-							}
+
+						if (parameterDetails.getParameterType() == null) {
+							parameterDetails.setParameterType(temp.replaceAll("[^a-zA-Z0-9]", ""));
 							continue;
 						}
 
-						if (parameterDetails.getParameterName1() == null) {
-							parameterDetails.setParameterName1(temp.replaceAll("[^a-zA-Z0-9]", ""));
-							continue;
-						}
-						// for parameter2
-						if (parameterDetails.getParameterType2() == null) {
-							parameterDetails.setParameterType2(temp.replaceAll("[^a-zA-Z0-9]", ""));
-							continue;
-						}
-
-						if (parameterDetails.getParameterName2() == null) {
-							parameterDetails.setParameterName2(temp.replaceAll("[^a-zA-Z0-9]", ""));
-							continue;
-						}
-						// for parameter3
-						if (parameterDetails.getParameterType3() == null) {
-							parameterDetails.setParameterType3(temp.replaceAll("[^a-zA-Z0-9]", ""));
-							continue;
-						}
-
-						if (parameterDetails.getParameterName3() == null) {
-							parameterDetails.setParameterName3(temp.replaceAll("[^a-zA-Z0-9]", ""));
-							continue;
-						}
-						// for parameter4
-						if (parameterDetails.getParameterType4() == null) {
-							parameterDetails.setParameterType4(temp.replaceAll("[^a-zA-Z0-9]", ""));
-							continue;
-						}
-
-						if (parameterDetails.getParameterName4() == null) {
-							parameterDetails.setParameterName4(temp.replaceAll("[^a-zA-Z0-9]", ""));
-							continue;
-						}
-						// for parameter5
-						if (parameterDetails.getParameterType5() == null) {
-							parameterDetails.setParameterType5(temp.replaceAll("[^a-zA-Z0-9]", ""));
-							continue;
-						}
-
-						if (parameterDetails.getParameterName5() == null) {
-							parameterDetails.setParameterName5(temp.replaceAll("[^a-zA-Z0-9]", ""));
+						if (parameterDetails.getParameterName() == null) {
+							parameterDetails.setParameterName(temp.replaceAll("[^a-zA-Z0-9]", ""));
 							continue;
 						}
 					}
+					parameters.add(parameterDetails);
 				}
-				methodDetails.setTotalParameters(secondHalf.length);
 			}
-			methodDetails.setParameters(parameterDetails);
+			methodDetails.setParameters(parameters);
 		}
 	}
 
 	public static void main(String[] args) {
-		methodfile = new ClassParser("C:\\Users\\I320234\\Desktop\\mainactivity.txt");
+		methodfile = new ClassParser("C:\\Users\\I323334\\Desktop\\Validate.java");
 	}
 
 	public ArrayList<MethodDetails> getAllMethodDetails() {
